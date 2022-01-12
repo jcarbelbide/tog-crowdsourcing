@@ -16,7 +16,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 @PluginDescriptor(
 	name = "Example"
 )
-public class ExamplePlugin extends Plugin
+public class ToGWorldCrowdsourcingPlugin extends Plugin
 {
 	@Inject
 	private Client client;
