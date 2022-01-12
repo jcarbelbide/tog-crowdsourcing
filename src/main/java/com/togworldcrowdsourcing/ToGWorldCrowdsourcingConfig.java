@@ -1,4 +1,4 @@
-package com.example;
+package net.runelite.client.plugins.togworldcrowdsourcing.src.main.java.com.togworldcrowdsourcing;
 
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
