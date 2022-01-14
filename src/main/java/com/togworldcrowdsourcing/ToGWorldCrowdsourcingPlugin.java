@@ -13,6 +13,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.overlay.OverlayManager;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -42,8 +43,11 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 	@Inject
 	private ToGWorldCrowdsourcingConfig config;
 
-	@Getter
-	private final Map<DecorativeObject, Instant> streams = new HashMap<>();
+	@Inject
+	private ToGWorldCrowdsourcingOverlay overlay;
+
+	@Inject
+	private OverlayManager overlayManager;
 
 	@Getter
 	private ArrayList<DecorativeObject> streamList = new ArrayList<>();
@@ -53,13 +57,15 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 	{
 		log.info("ToG Started");
 		dataValid = false;
+		overlayManager.add(overlay);
 	}
 
 	@Override
 	protected void shutDown()
 	{
 		log.info("ToG Started");
-		streams.clear();
+		overlayManager.remove(overlay);
+		streamList.clear();
 	}
 
 	@Subscribe
@@ -69,9 +75,10 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 		{
 			case LOADING:
 			case LOGIN_SCREEN:
+				streamList.clear();
 			case HOPPING:
 				dataValid = false;
-				streams.clear();
+				streamList.clear();
 		}
 	}
 
@@ -88,11 +95,18 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 		if (object.getId() == ObjectID.BLUE_TEARS || object.getId() == ObjectID.BLUE_TEARS_6665 ||
 				object.getId() == ObjectID.GREEN_TEARS || object.getId() == ObjectID.GREEN_TEARS_6666)
 		{
-//			streamList.add(object);
 			long timeSinceLastSpawn = ChronoUnit.MILLIS.between(lastInstant, Instant.now());
-			System.out.println("Color: " + streamToString(object) + " Time since last instant: " + timeSinceLastSpawn);
+			if (timeSinceLastSpawn > STREAM_LONG_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
+			{
+				System.out.println(streamListToString(streamList));
+				streamList.clear();
+			}
+			streamList.add(object);
+			System.out.println("Color: " + overlay.streamToString(object) + " Time since last instant: " + timeSinceLastSpawn);
 			lastInstant = Instant.now();
+			System.out.println(streamListToString(overlay.padWithNull(streamList)));
 		}
+
 
 	}
 
@@ -101,31 +115,28 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 		// TODO: Create function to call to verify if this data is valid to send.
 	}
 
-	private String streamToString(DecorativeObject object)
+	public ArrayList<String> streamListToStringArray(ArrayList<DecorativeObject> objectArrayList)
 	{
-		if (	object.getId() == ObjectID.BLUE_TEARS ||
-				object.getId() == ObjectID.BLUE_TEARS_6665)
+		ArrayList<String> streamListStringArray = new ArrayList<>();
+
+		for (DecorativeObject object : objectArrayList)
 		{
-			return "Blue";
+			streamListStringArray.add(overlay.streamToString(object));
 		}
-		if (	object.getId() == ObjectID.GREEN_TEARS ||
-				object.getId() == ObjectID.GREEN_TEARS_6666)
-		{
-			return "Green";
-		}
-		else { return "Error"; }
+
+		return streamListStringArray;
 	}
 
-	@Subscribe
-	public void onDecorativeObjectDespawned(DecorativeObjectDespawned event)
+	public String streamListToString(ArrayList<DecorativeObject> objectArrayList)
 	{
-		if (streams.isEmpty())
+		StringBuilder stringBuilder = new StringBuilder();
+
+		for (DecorativeObject object : objectArrayList)
 		{
-			return;
+			stringBuilder.append(overlay.streamToString(object) + " ");
 		}
 
-		DecorativeObject object = event.getDecorativeObject();
-		streams.remove(object);
+		return stringBuilder.toString();
 	}
 
 	@Provides
