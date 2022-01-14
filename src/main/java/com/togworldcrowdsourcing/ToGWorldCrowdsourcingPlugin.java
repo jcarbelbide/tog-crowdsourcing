@@ -112,6 +112,12 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 
 	private void verifyData()
 	{
+		if (streamList.size() > 6)
+		{
+			streamList.clear();
+		}
+		// If stream list has 6 in a row with short delays, then we know its valid
+		// if stream list has 6, its valid if first has delay of around long, and rest are short
 		// TODO: Create function to call to verify if this data is valid to send.
 	}
 

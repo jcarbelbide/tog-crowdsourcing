@@ -102,7 +102,7 @@ class ToGWorldCrowdsourcingOverlay extends OverlayPanel
 	{
 		if (object == null)
 		{
-			return "null";
+			return "-";
 		}
 		if (	object.getId() == ObjectID.BLUE_TEARS ||
 				object.getId() == ObjectID.BLUE_TEARS_6665)
@@ -126,7 +126,7 @@ class ToGWorldCrowdsourcingOverlay extends OverlayPanel
 		}
 
 		for (int i = 0; i < 6 - streamList.size(); i++) {
-			streamList.add(null);
+			paddedList.add(null);
 		}
 
 		return paddedList;
