@@ -31,15 +31,15 @@ import net.runelite.client.util.ColorUtil;
 
 import javax.inject.Inject;
 import java.awt.*;
+import java.time.Instant;
 import java.util.ArrayList;
+
+import static net.runelite.client.plugins.togworldcrowdsourcing.src.main.java.com.togworldcrowdsourcing.ToGWorldCrowdsourcingPlugin.NUMBER_OF_TEAR_STREAMS;
 
 class ToGWorldCrowdsourcingOverlay extends OverlayPanel
 {
 	private final ToGWorldCrowdsourcingPlugin plugin;
 	private final ToGWorldCrowdsourcingConfig config;
-
-	private final Color BLUE_TEARS_COLOR = ColorUtil.colorWithAlpha(Color.CYAN, 100);
-	private final Color GREEN_TEARS_COLOR = ColorUtil.colorWithAlpha(Color.GREEN, 100);
 
 	@Inject
 	private ToGWorldCrowdsourcingOverlay(ToGWorldCrowdsourcingPlugin plugin, ToGWorldCrowdsourcingConfig config)
@@ -51,24 +51,24 @@ class ToGWorldCrowdsourcingOverlay extends OverlayPanel
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		ArrayList<DecorativeObject> paddedList = padWithNull(plugin.getStreamList());
+		ArrayList<TearStream> paddedList = padWithNull(plugin.getStreamList());
 
 		TripleLineComponent topLine = TripleLineComponent.builder()
 				.left(streamToString(paddedList.get(0)))
 				.middle(streamToString(paddedList.get(1)))
 				.right(streamToString(paddedList.get(2)))
-				.leftColor(determineColor(paddedList.get(0)))
-				.middleColor(determineColor(paddedList.get(1)))
-				.rightColor(determineColor(paddedList.get(2)))
+				.leftColor(paddedList.get(0).getColor())
+				.middleColor(paddedList.get(1).getColor())
+				.rightColor(paddedList.get(2).getColor())
 				.build();
 
 		TripleLineComponent bottomLine = TripleLineComponent.builder()
 				.left(streamToString(paddedList.get(3)))
 				.middle(streamToString(paddedList.get(4)))
 				.right(streamToString(paddedList.get(5)))
-				.leftColor(determineColor(paddedList.get(3)))
-				.middleColor(determineColor(paddedList.get(4)))
-				.rightColor(determineColor(paddedList.get(5)))
+				.leftColor(paddedList.get(3).getColor())
+				.middleColor(paddedList.get(4).getColor())
+				.rightColor(paddedList.get(5).getColor())
 				.build();
 
 		panelComponent.getChildren().add(
@@ -80,53 +80,36 @@ class ToGWorldCrowdsourcingOverlay extends OverlayPanel
 		return super.render(graphics);
 	}
 
-	private Color determineColor(DecorativeObject object) {
-		if (object == null)
-		{
-			return Color.RED;
-		}
-		if (	object.getId() == ObjectID.BLUE_TEARS ||
-				object.getId() == ObjectID.BLUE_TEARS_6665)
-		{
-			return BLUE_TEARS_COLOR;
-		}
-		if (	object.getId() == ObjectID.GREEN_TEARS ||
-				object.getId() == ObjectID.GREEN_TEARS_6666)
-		{
-		return GREEN_TEARS_COLOR;
-		}
-		else { return Color.RED; }
-	}
-
-	public String streamToString(DecorativeObject object)
+	public String streamToString(TearStream object)
 	{
-		if (object == null)
+		DecorativeObject tearStreamObject = object.getTearStreamObject();
+		if (tearStreamObject == null)
 		{
 			return "-";
 		}
-		if (	object.getId() == ObjectID.BLUE_TEARS ||
-				object.getId() == ObjectID.BLUE_TEARS_6665)
+		if (	tearStreamObject.getId() == ObjectID.BLUE_TEARS ||
+				tearStreamObject.getId() == ObjectID.BLUE_TEARS_6665)
 		{
 			return "Blue";
 		}
-		if (	object.getId() == ObjectID.GREEN_TEARS ||
-				object.getId() == ObjectID.GREEN_TEARS_6666)
+		if (	tearStreamObject.getId() == ObjectID.GREEN_TEARS ||
+				tearStreamObject.getId() == ObjectID.GREEN_TEARS_6666)
 		{
 			return "Green";
 		}
 		else { return "Error"; }
 	}
 
-	public ArrayList<DecorativeObject> padWithNull(ArrayList<DecorativeObject> streamList)
+	public ArrayList<TearStream> padWithNull(ArrayList<TearStream> streamList)
 	{
-		ArrayList<DecorativeObject> paddedList = new ArrayList<>();
+		ArrayList<TearStream> paddedList = new ArrayList<>();
 		for (int i = 0; i < streamList.size(); i++)
 		{
 			paddedList.add(streamList.get(i));
 		}
 
-		for (int i = 0; i < 6 - streamList.size(); i++) {
-			paddedList.add(null);
+		for (int i = 0; i < NUMBER_OF_TEAR_STREAMS - streamList.size(); i++) {
+			paddedList.add(new TearStream(null, 0, Instant.now()));
 		}
 
 		return paddedList;

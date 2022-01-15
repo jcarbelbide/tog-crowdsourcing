@@ -9,6 +9,7 @@ import net.runelite.api.*;
 import net.runelite.api.events.DecorativeObjectDespawned;
 import net.runelite.api.events.DecorativeObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -32,6 +33,7 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 	private static final int STREAM_SHORT_INTERVAL = 600;
 	private static final int STREAM_LONG_INTERVAL = 6600;
 	private static final double STREAM_INTERVAL_TOLERANCE = 0.2;
+	public static final int NUMBER_OF_TEAR_STREAMS = 6;
 
 	private boolean dataValid;
 
@@ -50,7 +52,7 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 	private OverlayManager overlayManager;
 
 	@Getter
-	private ArrayList<DecorativeObject> streamList = new ArrayList<>();
+	private ArrayList<TearStream> streamList = new ArrayList<>();
 
 	@Override
 	protected void startUp()
@@ -75,17 +77,17 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 		{
 			case LOADING:
 			case LOGIN_SCREEN:
-				streamList.clear();
 			case HOPPING:
-				dataValid = false;
-				streamList.clear();
 		}
+		dataValid = false;
+		streamList.clear();
 	}
 
 	@Subscribe
 	public void onDecorativeObjectSpawned(DecorativeObjectSpawned event)
 	{
 		if (client.getLocalPlayer().getWorldLocation().getRegionID() != TOG_REGION) return;
+		if (dataValid) { return; }
 
 		// TODO: Create list of the streams --> blue, blue, blue, green, green, green, etc.
 		// Keep track of the time between the last stream and the current stream. If above a certain threshold and data is not yet valid, then
@@ -95,51 +97,100 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 		if (object.getId() == ObjectID.BLUE_TEARS || object.getId() == ObjectID.BLUE_TEARS_6665 ||
 				object.getId() == ObjectID.GREEN_TEARS || object.getId() == ObjectID.GREEN_TEARS_6666)
 		{
-			long timeSinceLastSpawn = ChronoUnit.MILLIS.between(lastInstant, Instant.now());
-			if (timeSinceLastSpawn > STREAM_LONG_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
-			{
-				System.out.println(streamListToString(streamList));
-				streamList.clear();
-			}
-			streamList.add(object);
-			System.out.println("Color: " + overlay.streamToString(object) + " Time since last instant: " + timeSinceLastSpawn);
+			Instant spawnInstant = Instant.now();
+			long timeSinceLastSpawn = ChronoUnit.MILLIS.between(lastInstant, spawnInstant);
+			TearStream tearStream = new TearStream(object, timeSinceLastSpawn, spawnInstant);
+
+//			if (timeSinceLastSpawn > STREAM_LONG_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
+//			{
+//				System.out.println(streamListToString(streamList));
+//				streamList.clear();
+//			}
+
+			streamList.add(tearStream);
 			lastInstant = Instant.now();
+			System.out.println("Color: " + overlay.streamToString(tearStream) + " Time since last instant: " + timeSinceLastSpawn);
 			System.out.println(streamListToString(overlay.padWithNull(streamList)));
 		}
 
 
 	}
 
-	private void verifyData()
+	@Subscribe
+	private void onGameTick(GameTick event)
 	{
-		if (streamList.size() > 6)
+		// fix after the list is 6, it will add one more to the list to make it 7, then clear, so the list wil be 5
+		if (dataValid) { return; }
+		verifyDataIsValid();
+	}
+
+	private void verifyDataIsValid()
+	{
+		if (streamList.size() == 0) { return; }
+		else if (streamList.size() > NUMBER_OF_TEAR_STREAMS)
 		{
 			streamList.clear();
+		}
+		else if (streamList.size() < NUMBER_OF_TEAR_STREAMS)
+		{
+			Instant currentInstant = Instant.now();
+			Instant lastSpawnInstant = streamList.get(streamList.size() - 1).getSpawnInstant();
+			long timeSinceLastSpawn = ChronoUnit.MILLIS.between(lastSpawnInstant, currentInstant);
+			if (timeSinceLastSpawn > STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
+			{
+				streamList.clear();
+			}
+		}
+		else if (streamList.size() == NUMBER_OF_TEAR_STREAMS)
+		{
+//			// Tear 0 must be LONG
+//			if (streamList.get(0).getTimeSinceLastSpawn() < STREAM_LONG_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
+//			{
+//				System.out.println("Data NOT valid (First Stream not Valid)");
+//				streamList.clear();
+//				return;
+//			}
+//			// Tear 1-5 must be SHORT
+//			for (int i = 1; i < NUMBER_OF_TEAR_STREAMS; i++)
+//			{
+//				if (Math.abs(streamList.get(i).getTimeSinceLastSpawn() - STREAM_SHORT_INTERVAL) > Math.abs(STREAM_SHORT_INTERVAL * STREAM_INTERVAL_TOLERANCE))
+//				{
+//					System.out.println("Data NOT valid (1-5 not valid)");
+//					streamList.clear();
+//					return;
+//				}
+//			}
+			// I think if it manages to store 6 streams, the data is always valid. Every hop, the stream list is cleared,
+			// so no worries about getting a stream from a previous world. If it only reaches 5 because we hopped in the
+			// middle of the streams changing, then the whole list will be cleared from the previous if statement.
+			System.out.println("Data IS valid!");
+			dataValid = true;
+			return;
 		}
 		// If stream list has 6 in a row with short delays, then we know its valid
 		// if stream list has 6, its valid if first has delay of around long, and rest are short
 		// TODO: Create function to call to verify if this data is valid to send.
 	}
 
-	public ArrayList<String> streamListToStringArray(ArrayList<DecorativeObject> objectArrayList)
+	public ArrayList<String> streamListToStringArray(ArrayList<TearStream> tearStreamArrayList)
 	{
 		ArrayList<String> streamListStringArray = new ArrayList<>();
 
-		for (DecorativeObject object : objectArrayList)
+		for (TearStream tearStream : tearStreamArrayList)
 		{
-			streamListStringArray.add(overlay.streamToString(object));
+			streamListStringArray.add(overlay.streamToString(tearStream));
 		}
 
 		return streamListStringArray;
 	}
 
-	public String streamListToString(ArrayList<DecorativeObject> objectArrayList)
+	public String streamListToString(ArrayList<TearStream> tearStreamArrayList)
 	{
 		StringBuilder stringBuilder = new StringBuilder();
 
-		for (DecorativeObject object : objectArrayList)
+		for (TearStream tearStream : tearStreamArrayList)
 		{
-			stringBuilder.append(overlay.streamToString(object) + " ");
+			stringBuilder.append(overlay.streamToString(tearStream) + " ");
 		}
 
 		return stringBuilder.toString();
