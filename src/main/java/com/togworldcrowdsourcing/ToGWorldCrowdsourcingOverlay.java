@@ -26,11 +26,17 @@ package net.runelite.client.plugins.togworldcrowdsourcing.src.main.java.com.togw
 
 import net.runelite.api.DecorativeObject;
 import net.runelite.api.ObjectID;
+import net.runelite.api.SpriteID;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.overlay.OverlayPanel;
+import net.runelite.client.ui.overlay.components.ComponentOrientation;
+import net.runelite.client.ui.overlay.components.ImageComponent;
+import net.runelite.client.ui.overlay.components.SplitComponent;
 import net.runelite.client.util.ColorUtil;
 
 import javax.inject.Inject;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.time.Instant;
 import java.util.ArrayList;
 
@@ -40,6 +46,9 @@ class ToGWorldCrowdsourcingOverlay extends OverlayPanel
 {
 	private final ToGWorldCrowdsourcingPlugin plugin;
 	private final ToGWorldCrowdsourcingConfig config;
+
+	@Inject
+	SpriteManager spriteManager;
 
 	@Inject
 	private ToGWorldCrowdsourcingOverlay(ToGWorldCrowdsourcingPlugin plugin, ToGWorldCrowdsourcingConfig config)
@@ -71,11 +80,29 @@ class ToGWorldCrowdsourcingOverlay extends OverlayPanel
 				.rightColor(paddedList.get(5).getColor())
 				.build();
 
-		panelComponent.getChildren().add(
-				topLine);
+		SplitComponent tearColorsSplitComponent = SplitComponent.builder()
+				.first(topLine)
+				.second(bottomLine)
+				.orientation(ComponentOrientation.VERTICAL)
+				.build();
+
+
+		ImageComponent checkboxImageComponent = new ImageComponent(getCheckBoxImage());
+		SplitComponent tearColorsAndCheckboxSplitComponent = SplitComponent.builder()
+				.first(tearColorsSplitComponent)
+				.second(checkboxImageComponent)
+				.orientation(ComponentOrientation.HORIZONTAL)
+				.build();
 
 		panelComponent.getChildren().add(
-				bottomLine);
+				tearColorsAndCheckboxSplitComponent
+		);
+
+//		panelComponent.getChildren().add(
+//				topLine);
+//
+//		panelComponent.getChildren().add(
+//				bottomLine);
 
 		return super.render(graphics);
 	}
@@ -113,5 +140,11 @@ class ToGWorldCrowdsourcingOverlay extends OverlayPanel
 		}
 
 		return paddedList;
+	}
+
+	private BufferedImage getCheckBoxImage()
+	{
+		int spriteID = plugin.isDataValid() ? SpriteID.OPTIONS_ROUND_CHECK_BOX_CHECKED : SpriteID.OPTIONS_ROUND_CHECK_BOX_CROSSED;
+		return spriteManager.getSprite(spriteID, 0);
 	}
 }

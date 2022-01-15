@@ -6,7 +6,6 @@ import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
-import net.runelite.api.events.DecorativeObjectDespawned;
 import net.runelite.api.events.DecorativeObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
@@ -16,12 +15,9 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @PluginDescriptor(
@@ -35,9 +31,12 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 	private static final double STREAM_INTERVAL_TOLERANCE = 0.2;
 	public static final int NUMBER_OF_TEAR_STREAMS = 6;
 
+	@Getter
 	private boolean dataValid;
 
-	private Instant lastInstant = Instant.now();
+	private Instant lastSpawnInstant = Instant.now();
+
+	private GameTick gameTick;
 
 	@Inject
 	private Client client;
@@ -86,8 +85,9 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 	@Subscribe
 	public void onDecorativeObjectSpawned(DecorativeObjectSpawned event)
 	{
-		if (client.getLocalPlayer().getWorldLocation().getRegionID() != TOG_REGION) return;
 		if (dataValid) { return; }
+		if (client.getGameState() != GameState.LOGGED_IN) { return; }
+		if (client.getLocalPlayer().getWorldLocation().getRegionID() != TOG_REGION) return;
 
 		// TODO: Create list of the streams --> blue, blue, blue, green, green, green, etc.
 		// Keep track of the time between the last stream and the current stream. If above a certain threshold and data is not yet valid, then
@@ -98,8 +98,20 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 				object.getId() == ObjectID.GREEN_TEARS || object.getId() == ObjectID.GREEN_TEARS_6666)
 		{
 			Instant spawnInstant = Instant.now();
-			long timeSinceLastSpawn = ChronoUnit.MILLIS.between(lastInstant, spawnInstant);
+			long timeSinceLastSpawn = ChronoUnit.MILLIS.between(lastSpawnInstant, spawnInstant);
 			TearStream tearStream = new TearStream(object, timeSinceLastSpawn, spawnInstant);
+			lastSpawnInstant = spawnInstant;
+
+			System.out.println("Color: " + overlay.streamToString(tearStream) + " Time since last spawn: " + timeSinceLastSpawn);
+			// Do not want to update unless it has been around 1 tick. Otherwise, it could be the client loading streams in at a random time and calling this function 6 times in quick succession.
+			// If the above comment is true, then clear the list and return. It is potentially bad data.
+			// TODO: Implement this function above. In addition, look into taking out lastInstant. See if we can just use the last element in the array.
+			if (timeSinceLastSpawn < STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
+			{
+				streamList.clear();
+				System.out.println("Stream Cleared from onDecorativeObjectSpawned");
+				return;
+			}
 
 //			if (timeSinceLastSpawn > STREAM_LONG_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
 //			{
@@ -108,8 +120,6 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 //			}
 
 			streamList.add(tearStream);
-			lastInstant = Instant.now();
-			System.out.println("Color: " + overlay.streamToString(tearStream) + " Time since last instant: " + timeSinceLastSpawn);
 			System.out.println(streamListToString(overlay.padWithNull(streamList)));
 		}
 
@@ -133,12 +143,27 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 		}
 		else if (streamList.size() < NUMBER_OF_TEAR_STREAMS)
 		{
+			// TODO: May want to consider ignoring first index. Only time it would matter is if somehow the first index
+			//  is less than a game tick since last spawn, which I think is unlikely if not impossible to occur. Could
+			//  only occur during a hop. Even then, can it occur?
+			// If it has been longer than STREAM_SHORT_INTERVAL ms, then clear the list.
+			// However, we do not want to clear the list if its too short either. But the problem is, this function gets
+			// called almost right after adding a stream.
+			// We need two conditions:
+			// 		1. Clear if the time between last stream is less than SHORT interval.
+			// 		2. Clear if it has been longer than SHORT since the last time we added a stream.
 			Instant currentInstant = Instant.now();
 			Instant lastSpawnInstant = streamList.get(streamList.size() - 1).getSpawnInstant();
 			long timeSinceLastSpawn = ChronoUnit.MILLIS.between(lastSpawnInstant, currentInstant);
-			if (timeSinceLastSpawn > STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
+			long timeBetweenSpawnForLatestTear = streamList.get(streamList.size() - 1).getTimeSinceLastSpawn();
+//			if (timeSinceLastSpawn > STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
+			// (Math.abs(timeSinceLastSpawn - STREAM_SHORT_INTERVAL) > Math.abs(STREAM_SHORT_INTERVAL * STREAM_INTERVAL_TOLERANCE)
+			System.out.println("5 or under streams");
+			if (timeBetweenSpawnForLatestTear < STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE) ||
+					timeSinceLastSpawn > STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
 			{
 				streamList.clear();
+				System.out.println("Stream Cleared from verifyDataValid. Since: " + timeSinceLastSpawn + " Between: " + timeBetweenSpawnForLatestTear);
 			}
 		}
 		else if (streamList.size() == NUMBER_OF_TEAR_STREAMS)
