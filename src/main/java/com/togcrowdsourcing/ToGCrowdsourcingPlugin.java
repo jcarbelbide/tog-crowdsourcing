@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.togworldcrowdsourcing.src.main.java.com.togworldcrowdsourcing;
+package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
 
 import com.google.inject.Provides;
 import javax.inject.Inject;
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 @PluginDescriptor(
 	name = "Tears of Guthix Crowdsourcing"
 )
-public class ToGWorldCrowdsourcingPlugin extends Plugin
+public class ToGCrowdsourcingPlugin extends Plugin
 {
 	private static final int TOG_REGION = 12948;
 	private static final int STREAM_SHORT_INTERVAL = 600;
@@ -42,10 +42,10 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 	private Client client;
 
 	@Inject
-	private ToGWorldCrowdsourcingConfig config;
+	private ToGCrowdsourcingConfig config;
 
 	@Inject
-	private ToGWorldCrowdsourcingOverlay overlay;
+	private ToGCrowdsourcingOverlay overlay;
 
 	@Inject
 	private OverlayManager overlayManager;
@@ -222,8 +222,8 @@ public class ToGWorldCrowdsourcingPlugin extends Plugin
 	}
 
 	@Provides
-	ToGWorldCrowdsourcingConfig provideConfig(ConfigManager configManager)
+	ToGCrowdsourcingConfig provideConfig(ConfigManager configManager)
 	{
-		return configManager.getConfig(ToGWorldCrowdsourcingConfig.class);
+		return configManager.getConfig(ToGCrowdsourcingConfig.class);
 	}
 }

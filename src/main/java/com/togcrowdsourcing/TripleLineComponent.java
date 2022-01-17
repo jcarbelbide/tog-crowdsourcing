@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.togworldcrowdsourcing.src.main.java.com.togworldcrowdsourcing;
+package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;

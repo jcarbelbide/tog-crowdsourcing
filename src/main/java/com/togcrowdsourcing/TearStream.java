@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.togworldcrowdsourcing.src.main.java.com.togworldcrowdsourcing;
+package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
 
 import lombok.Getter;
 import net.runelite.api.DecorativeObject;

@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.togworldcrowdsourcing.src.main.java.com.togworldcrowdsourcing;
+package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
 
 import net.runelite.api.DecorativeObject;
 import net.runelite.api.ObjectID;
@@ -32,7 +32,6 @@ import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.components.ComponentOrientation;
 import net.runelite.client.ui.overlay.components.ImageComponent;
 import net.runelite.client.ui.overlay.components.SplitComponent;
-import net.runelite.client.util.ColorUtil;
 
 import javax.inject.Inject;
 import java.awt.*;
@@ -40,18 +39,19 @@ import java.awt.image.BufferedImage;
 import java.time.Instant;
 import java.util.ArrayList;
 
-import static net.runelite.client.plugins.togworldcrowdsourcing.src.main.java.com.togworldcrowdsourcing.ToGWorldCrowdsourcingPlugin.NUMBER_OF_TEAR_STREAMS;
+import static net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ToGCrowdsourcingPlugin.NUMBER_OF_TEAR_STREAMS;
 
-class ToGWorldCrowdsourcingOverlay extends OverlayPanel
+class ToGCrowdsourcingOverlay extends OverlayPanel
 {
-	private final ToGWorldCrowdsourcingPlugin plugin;
-	private final ToGWorldCrowdsourcingConfig config;
+	private final ToGCrowdsourcingPlugin plugin;
+	private final ToGCrowdsourcingConfig config;
+	private static final int OVERLAY_SPLIT_GAP = 20;
 
 	@Inject
 	SpriteManager spriteManager;
 
 	@Inject
-	private ToGWorldCrowdsourcingOverlay(ToGWorldCrowdsourcingPlugin plugin, ToGWorldCrowdsourcingConfig config)
+	private ToGCrowdsourcingOverlay(ToGCrowdsourcingPlugin plugin, ToGCrowdsourcingConfig config)
 	{
 		this.config = config;
 		this.plugin = plugin;
@@ -92,6 +92,7 @@ class ToGWorldCrowdsourcingOverlay extends OverlayPanel
 				.first(tearColorsSplitComponent)
 				.second(checkboxImageComponent)
 				.orientation(ComponentOrientation.HORIZONTAL)
+				.gap(new Point(OVERLAY_SPLIT_GAP, 0))
 				.build();
 
 		panelComponent.getChildren().add(
