@@ -39,11 +39,11 @@ import java.awt.image.BufferedImage;
 import java.time.Instant;
 import java.util.ArrayList;
 
-import static net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ToGCrowdsourcingPlugin.NUMBER_OF_TEAR_STREAMS;
+import static net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.StreamOrderDetector.NUMBER_OF_TEAR_STREAMS;
 
 class ToGCrowdsourcingOverlay extends OverlayPanel
 {
-	private final ToGCrowdsourcingPlugin plugin;
+	private final StreamOrderDetector streamOrderDetector;
 	private final ToGCrowdsourcingConfig config;
 	private static final int OVERLAY_SPLIT_GAP = 20;
 
@@ -51,16 +51,16 @@ class ToGCrowdsourcingOverlay extends OverlayPanel
 	SpriteManager spriteManager;
 
 	@Inject
-	private ToGCrowdsourcingOverlay(ToGCrowdsourcingPlugin plugin, ToGCrowdsourcingConfig config)
+	private ToGCrowdsourcingOverlay(StreamOrderDetector streamOrderDetector, ToGCrowdsourcingConfig config)
 	{
 		this.config = config;
-		this.plugin = plugin;
+		this.streamOrderDetector = streamOrderDetector;
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		ArrayList<TearStream> paddedList = padWithNull(plugin.getStreamList());
+		ArrayList<TearStream> paddedList = padWithNull(streamOrderDetector.getStreamList());
 
 		TripleLineComponent topLine = TripleLineComponent.builder()
 				.left(streamToString(paddedList.get(0)))
@@ -145,7 +145,7 @@ class ToGCrowdsourcingOverlay extends OverlayPanel
 
 	private BufferedImage getCheckBoxImage()
 	{
-		int spriteID = plugin.isDataValid() ? SpriteID.OPTIONS_ROUND_CHECK_BOX_CHECKED : SpriteID.OPTIONS_ROUND_CHECK_BOX_CROSSED;
+		int spriteID = streamOrderDetector.isDataValid() ? SpriteID.OPTIONS_ROUND_CHECK_BOX_CHECKED : SpriteID.OPTIONS_ROUND_CHECK_BOX_CROSSED;
 		return spriteManager.getSprite(spriteID, 0);
 	}
 }
