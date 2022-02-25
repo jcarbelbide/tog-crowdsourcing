@@ -50,6 +50,9 @@ public class ToGCrowdsourcingPlugin extends Plugin
 	@Inject
 	private OverlayManager overlayManager;
 
+	@Inject
+	private CrowdsourcingManager crowdsourcingManager;
+
 	@Getter
 	private ArrayList<TearStream> streamList = new ArrayList<>();
 
@@ -89,7 +92,6 @@ public class ToGCrowdsourcingPlugin extends Plugin
 		if (client.getGameState() != GameState.LOGGED_IN) { return; }
 		if (client.getLocalPlayer().getWorldLocation().getRegionID() != TOG_REGION) return;
 
-		// TODO: Create list of the streams --> blue, blue, blue, green, green, green, etc.
 		// Keep track of the time between the last stream and the current stream. If above a certain threshold and data is not yet valid, then
 
 		DecorativeObject object = event.getDecorativeObject();
@@ -120,7 +122,7 @@ public class ToGCrowdsourcingPlugin extends Plugin
 //			}
 
 			streamList.add(tearStream);
-			System.out.println(streamListToString(overlay.padWithNull(streamList)));
+			System.out.println(streamListToStringForAPI(overlay.padWithNull(streamList)));
 		}
 
 
@@ -190,11 +192,11 @@ public class ToGCrowdsourcingPlugin extends Plugin
 			// middle of the streams changing, then the whole list will be cleared from the previous if statement.
 			System.out.println("Data IS valid!");
 			dataValid = true;
+			submitToAPI();
 			return;
 		}
 		// If stream list has 6 in a row with short delays, then we know its valid
 		// if stream list has 6, its valid if first has delay of around long, and rest are short
-		// TODO: Create function to call to verify if this data is valid to send.
 	}
 
 	public ArrayList<String> streamListToStringArray(ArrayList<TearStream> tearStreamArrayList)
@@ -209,16 +211,47 @@ public class ToGCrowdsourcingPlugin extends Plugin
 		return streamListStringArray;
 	}
 
-	public String streamListToString(ArrayList<TearStream> tearStreamArrayList)
+	private String streamListToStringForAPI(ArrayList<TearStream> tearStreamArrayList)
 	{
 		StringBuilder stringBuilder = new StringBuilder();
 
 		for (TearStream tearStream : tearStreamArrayList)
 		{
-			stringBuilder.append(overlay.streamToString(tearStream) + " ");
+			stringBuilder.append(streamToStringForAPI(tearStream));
 		}
 
 		return stringBuilder.toString();
+	}
+
+	private String streamToStringForAPI(TearStream object)
+	{
+		DecorativeObject tearStreamObject = object.getTearStreamObject();
+		if (tearStreamObject == null)
+		{
+			return "-";
+		}
+		if (	tearStreamObject.getId() == ObjectID.BLUE_TEARS ||
+				tearStreamObject.getId() == ObjectID.BLUE_TEARS_6665)
+		{
+			return "b";
+		}
+		if (	tearStreamObject.getId() == ObjectID.GREEN_TEARS ||
+				tearStreamObject.getId() == ObjectID.GREEN_TEARS_6666)
+		{
+			return "g";
+		}
+		else { return "Error"; }
+	}
+
+	private void submitToAPI()
+	{
+		synchronized (this)
+		{
+			int currentWorld = client.getWorld();
+			String streamOrder = streamListToStringForAPI(streamList);
+			WorldData worldData = new WorldData(currentWorld, streamOrder);
+			crowdsourcingManager.submitToAPI(worldData);
+		}
 	}
 
 	@Provides
