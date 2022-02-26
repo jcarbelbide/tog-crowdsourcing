@@ -28,10 +28,12 @@ package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowds
 import javax.inject.Inject;
 
 import com.google.inject.Provides;
+import net.runelite.api.World;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ui.WorldHopper;
 
 @PluginDescriptor(
 		name = "Tears of Guthix Crowdsourcing",
@@ -48,11 +50,17 @@ public class ToGCrowdsourcingPlugin extends Plugin
 	@Inject
 	private StreamOrderDetector streamOrderDetector;
 
+	@Inject
+	private WorldHopper worldHopper;
+
 	@Override
 	protected void startUp() throws Exception
 	{
 		eventBus.register(streamOrderDetector);
 		streamOrderDetector.startUpStreamOrderDetector();
+
+		eventBus.register(worldHopper);
+		worldHopper.startUpWorldHopper();
 	}
 
 	@Override
@@ -60,6 +68,9 @@ public class ToGCrowdsourcingPlugin extends Plugin
 	{
 		eventBus.unregister(streamOrderDetector);
 		streamOrderDetector.shutDownStreamOrderDetector();
+
+		eventBus.unregister(worldHopper);
+		worldHopper.shutDownWorldHopper();
 	}
 
 	@Provides
