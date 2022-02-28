@@ -26,6 +26,7 @@ package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowds
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.WorldData;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.http.api.worlds.World;
@@ -35,10 +36,8 @@ import net.runelite.http.api.worlds.WorldType;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 class WorldTableRow extends JPanel
@@ -66,26 +65,26 @@ class WorldTableRow extends JPanel
 		FLAG_GER = new ImageIcon(ImageUtil.loadImageResource(WorldHopper.class, "flag_ger.png"));
 	}
 
-	private final JMenuItem favoriteMenuOption = new JMenuItem();
-
 	private JLabel worldField;
-	private JLabel playerCountField;
-	private JLabel activityField;
-	private final BiConsumer<World, Boolean> onFavorite;
+	private JLabel hitsField;
+	private JLabel streamOrderField;
 
 	@Getter
 	private final World world;
 
+	@Getter
+	private final WorldData worldData;
+
 	@Getter(AccessLevel.PACKAGE)
-	private int updatedPlayerCount;
+	private int updatedHitsCount;
 
 	private Color lastBackground;
 
-	WorldTableRow(World world, boolean current, boolean favorite, Consumer<World> onSelect, BiConsumer<World, Boolean> onFavorite)
+	WorldTableRow(World world, WorldData worldData, boolean current, Consumer<World> onSelect)
 	{
 		this.world = world;
-		this.onFavorite = onFavorite;
-		this.updatedPlayerCount = world.getPlayers();
+		this.worldData = worldData;
+		this.updatedHitsCount = worldData.getHits();
 
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(2, 0, 2, 0));
@@ -136,11 +135,8 @@ class WorldTableRow extends JPanel
 			}
 		});
 
-		setFavoriteMenu(favorite);
-
 		final JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(5, 5, 5, 5));
-		popupMenu.add(favoriteMenuOption);
 
 		setComponentPopupMenu(popupMenu);
 
@@ -171,43 +167,24 @@ class WorldTableRow extends JPanel
 		add(rightSide, BorderLayout.CENTER);
 	}
 
-	void setFavoriteMenu(boolean favorite)
+	void updateHitsCount(int hitsCount)
 	{
-		String favoriteAction = favorite ?
-			"Remove " + world.getId() + " from favorites" :
-			"Add " + world.getId() + " to favorites";
-
-		favoriteMenuOption.setText(favoriteAction);
-
-		for (ActionListener listener : favoriteMenuOption.getActionListeners())
-		{
-			favoriteMenuOption.removeActionListener(listener);
-		}
-
-		favoriteMenuOption.addActionListener(e ->
-		{
-			onFavorite.accept(world, !favorite);
-		});
+		this.updatedHitsCount = hitsCount;
+		hitsField.setText(hitsCountString(hitsCount));
 	}
 
-	void updatePlayerCount(int playerCount)
+	private static String hitsCountString(int hitsCount)
 	{
-		this.updatedPlayerCount = playerCount;
-		playerCountField.setText(playerCountString(playerCount));
-	}
-
-	private static String playerCountString(int playerCount)
-	{
-		return playerCount < 0 ? "OFF" : Integer.toString(playerCount);
+		return hitsCount < 0 ? "OFF" : Integer.toString(hitsCount);
 	}
 
 	public void recolour(boolean current)
 	{
-		playerCountField.setForeground(current ? CURRENT_WORLD : Color.WHITE);
+		hitsField.setForeground(current ? CURRENT_WORLD : Color.WHITE);
 
 		if (current)
 		{
-			activityField.setForeground(CURRENT_WORLD);
+			streamOrderField.setForeground(CURRENT_WORLD);
 			worldField.setForeground(CURRENT_WORLD);
 			return;
 		}
@@ -215,19 +192,19 @@ class WorldTableRow extends JPanel
 			|| world.getTypes().contains(WorldType.HIGH_RISK)
 			|| world.getTypes().contains(WorldType.DEADMAN))
 		{
-			activityField.setForeground(DANGEROUS_WORLD);
+			streamOrderField.setForeground(DANGEROUS_WORLD);
 		}
 		else if (world.getTypes().contains(WorldType.SEASONAL))
 		{
-			activityField.setForeground(SEASONAL_WORLD);
+			streamOrderField.setForeground(SEASONAL_WORLD);
 		}
 		else if (world.getTypes().contains(WorldType.NOSAVE_MODE))
 		{
-			activityField.setForeground(TOURNAMENT_WORLD);
+			streamOrderField.setForeground(TOURNAMENT_WORLD);
 		}
 		else
 		{
-			activityField.setForeground(Color.WHITE);
+			streamOrderField.setForeground(Color.WHITE);
 		}
 
 		worldField.setForeground(world.getTypes().contains(WorldType.MEMBERS) ? MEMBERS_WORLD : FREE_WORLD);
@@ -241,10 +218,10 @@ class WorldTableRow extends JPanel
 		JPanel column = new JPanel(new BorderLayout());
 		column.setBorder(new EmptyBorder(0, 5, 0, 5));
 
-		playerCountField = new JLabel(playerCountString(world.getPlayers()));
-		playerCountField.setFont(FontManager.getRunescapeSmallFont());
+		hitsField = new JLabel(hitsCountString(world.getPlayers()));
+		hitsField.setFont(FontManager.getRunescapeSmallFont());
 
-		column.add(playerCountField, BorderLayout.WEST);
+		column.add(hitsField, BorderLayout.WEST);
 
 		return column;
 	}
@@ -258,13 +235,13 @@ class WorldTableRow extends JPanel
 		column.setBorder(new EmptyBorder(0, 5, 0, 5));
 
 		String activity = world.getActivity();
-		activityField = new JLabel(activity);
-		activityField.setFont(FontManager.getRunescapeSmallFont());
+		streamOrderField = new JLabel(activity);
+		streamOrderField.setFont(FontManager.getRunescapeSmallFont());
 		if (activity != null && activity.length() > 16)
 		{
-			activityField.setToolTipText(activity);
+			streamOrderField.setToolTipText(activity);
 			// Pass up events - https://stackoverflow.com/a/14932443
-			activityField.addMouseListener(new MouseAdapter()
+			streamOrderField.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mouseClicked(MouseEvent e)
@@ -298,7 +275,7 @@ class WorldTableRow extends JPanel
 			});
 		}
 
-		column.add(activityField, BorderLayout.WEST);
+		column.add(streamOrderField, BorderLayout.WEST);
 
 		return column;
 	}

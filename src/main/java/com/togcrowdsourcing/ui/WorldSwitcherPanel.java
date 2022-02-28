@@ -25,10 +25,12 @@
 package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ui;
 
 import com.google.common.collect.Ordering;
+import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.WorldData;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.DynamicGridLayout;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.http.api.worlds.World;
+import net.runelite.http.api.worlds.WorldResult;
 
 import javax.swing.*;
 import java.awt.*;
@@ -56,11 +58,11 @@ class WorldSwitcherPanel extends PluginPanel
 	private boolean ascendingOrder = true;
 
 	private final ArrayList<WorldTableRow> rows = new ArrayList<>();
-	private final WorldHopper plugin;
+	private final WorldHopper worldHopper;
 
-	WorldSwitcherPanel(WorldHopper plugin)
+	WorldSwitcherPanel(WorldHopper worldHopper)
 	{
-		this.plugin = plugin;
+		this.worldHopper = worldHopper;
 
 		setBorder(null);
 		setLayout(new DynamicGridLayout(0, 1));
@@ -96,16 +98,16 @@ class WorldSwitcherPanel extends PluginPanel
 			Integer playerCount = worldData.get(world.getId());
 			if (playerCount != null)
 			{
-				worldTableRow.updatePlayerCount(playerCount);
+				worldTableRow.updateHitsCount(playerCount);
 			}
 		}
 
 		// If the list is being ordered by player count, then it has to be re-painted
 		// to properly display the new data
-		if (orderIndex == WorldOrder.PLAYERS)
-		{
-			updateList();
-		}
+//		if (orderIndex == WorldOrder.HITS)
+//		{
+//			updateList();
+//		}
 	}
 
 	void updateList()
@@ -116,26 +118,27 @@ class WorldSwitcherPanel extends PluginPanel
 			{
 				case WORLD:
 					return getCompareValue(r1, r2, row -> row.getWorld().getId());
-				case PLAYERS:
-					return getCompareValue(r1, r2, WorldTableRow::getUpdatedPlayerCount);
-				case ACTIVITY:
+				case HITS:
+					return getCompareValue(r1, r2, WorldTableRow::getUpdatedHitsCount);
+				case STREAM_ORDER:
 					// Leave empty activity worlds on the bottom of the list
 					return getCompareValue(r1, r2, row ->
 					{
-						String activity = row.getWorld().getActivity();
-						return !activity.equals("-") ? activity : null;
+						String streamOrder = row.getWorldData().getStream_order();
+						return !streamOrder.equals("-") ? streamOrder : null;
 					});
 				default:
 					return 0;
 			}
 		});
 
-		rows.sort((r1, r2) ->
-		{
-			boolean b1 = plugin.isFavorite(r1.getWorld());
-			boolean b2 = plugin.isFavorite(r2.getWorld());
-			return Boolean.compare(b2, b1);
-		});
+		// TODO sort by stream order first.
+//		rows.sort((r1, r2) ->
+//		{
+//			boolean b1 = plugin.isFavorite(r1.getWorld());
+//			boolean b2 = plugin.isFavorite(r2.getWorld());
+//			return Boolean.compare(b2, b1);
+//		});
 
 		listContainer.removeAll();
 
@@ -161,26 +164,25 @@ class WorldSwitcherPanel extends PluginPanel
 		return ordering.compare(compareByFn.apply(row1), compareByFn.apply(row2));
 	}
 
-	void updateFavoriteMenu(int world, boolean favorite)
-	{
-		for (WorldTableRow row : rows)
-		{
-			if (row.getWorld().getId() == world)
-			{
-				row.setFavoriteMenu(favorite);
-			}
-		}
-	}
-
-	void populate(List<World> worlds)
+	void populate(List<WorldData> worldDataList)
 	{
 		rows.clear();
 
-		for (int i = 0; i < worlds.size(); i++)
-		{
-			World world = worlds.get(i);
+//		WorldResult worldResult = worldHopper.getWorldService().getWorlds();
 
-			rows.add(buildRow(world, i % 2 == 0, world.getId() == plugin.getCurrentWorld() && plugin.getLastWorld() != 0, plugin.isFavorite(world)));
+		for (int i = 0; i < worldDataList.size(); i++)
+		{
+			WorldData worldData = worldDataList.get(i);
+//			World world = worldResult.findWorld(worldData.getWorld_number());
+			// Don't try to add world if the world doesn't exist
+//			if (world == null)
+//			{
+//				continue;
+//			}
+
+			boolean isCurrentWorld = worldData.getWorld_number() == worldHopper.getCurrentWorld() && worldHopper.getLastWorld() != 0;
+
+			rows.add(buildRow(worldData, i % 2 == 0, isCurrentWorld));
 		}
 
 		updateList();
@@ -197,10 +199,10 @@ class WorldSwitcherPanel extends PluginPanel
 			case WORLD:
 				worldHeader.highlight(true, ascendingOrder);
 				break;
-			case PLAYERS:
+			case HITS:
 				playersHeader.highlight(true, ascendingOrder);
 				break;
-			case ACTIVITY:
+			case STREAM_ORDER:
 				activityHeader.highlight(true, ascendingOrder);
 				break;
 		}
@@ -218,7 +220,7 @@ class WorldSwitcherPanel extends PluginPanel
 		JPanel leftSide = new JPanel(new BorderLayout());
 		JPanel rightSide = new JPanel(new BorderLayout());
 
-		worldHeader = new WorldTableHeader("World", orderIndex == WorldOrder.WORLD, ascendingOrder, plugin::refresh);
+		worldHeader = new WorldTableHeader("World", orderIndex == WorldOrder.WORLD, ascendingOrder, worldHopper::refresh);
 		worldHeader.setPreferredSize(new Dimension(WORLD_COLUMN_WIDTH, 0));
 		worldHeader.addMouseListener(new MouseAdapter()
 		{
@@ -234,7 +236,7 @@ class WorldSwitcherPanel extends PluginPanel
 			}
 		});
 
-		playersHeader = new WorldTableHeader("#", orderIndex == WorldOrder.PLAYERS, ascendingOrder, plugin::refresh);
+		playersHeader = new WorldTableHeader("Hits", orderIndex == WorldOrder.HITS, ascendingOrder, worldHopper::refresh);
 		playersHeader.setPreferredSize(new Dimension(PLAYERS_COLUMN_WIDTH, 0));
 		playersHeader.addMouseListener(new MouseAdapter()
 		{
@@ -245,12 +247,12 @@ class WorldSwitcherPanel extends PluginPanel
 				{
 					return;
 				}
-				ascendingOrder = orderIndex != WorldOrder.PLAYERS || !ascendingOrder;
-				orderBy(WorldOrder.PLAYERS);
+				ascendingOrder = orderIndex != WorldOrder.HITS || !ascendingOrder;
+				orderBy(WorldOrder.HITS);
 			}
 		});
 
-		activityHeader = new WorldTableHeader("Activity", orderIndex == WorldOrder.ACTIVITY, ascendingOrder, plugin::refresh);
+		activityHeader = new WorldTableHeader("Stream Order", orderIndex == WorldOrder.STREAM_ORDER, ascendingOrder, worldHopper::refresh);
 		activityHeader.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -260,8 +262,8 @@ class WorldSwitcherPanel extends PluginPanel
 				{
 					return;
 				}
-				ascendingOrder = orderIndex != WorldOrder.ACTIVITY || !ascendingOrder;
-				orderBy(WorldOrder.ACTIVITY);
+				ascendingOrder = orderIndex != WorldOrder.STREAM_ORDER || !ascendingOrder;
+				orderBy(WorldOrder.STREAM_ORDER);
 			}
 		});
 
@@ -279,23 +281,12 @@ class WorldSwitcherPanel extends PluginPanel
 	/**
 	 * Builds a table row, that displays the world's information.
 	 */
-	private WorldTableRow buildRow(World world, boolean stripe, boolean current, boolean favorite)
+	private WorldTableRow buildRow(WorldData worldData, boolean stripe, boolean current)
 	{
-		WorldTableRow row = new WorldTableRow(world, current, favorite,
-			plugin::hopTo,
-			(world12, add) ->
-			{
-				if (add)
-				{
-					plugin.addToFavorites(world12);
-				}
-				else
-				{
-					plugin.removeFromFavorites(world12);
-				}
-
-				updateList();
-			}
+		World world = worldHopper.getWorldService().getWorlds().findWorld(worldData.getWorld_number());
+		WorldTableRow row = new WorldTableRow(
+				world, worldData, current,
+			worldHopper::hopTo
 		);
 		row.setBackground(stripe ? ODD_ROW : ColorScheme.DARK_GRAY_COLOR);
 		return row;
@@ -307,7 +298,7 @@ class WorldSwitcherPanel extends PluginPanel
 	private enum WorldOrder
 	{
 		WORLD,
-		PLAYERS,
-		ACTIVITY
+		HITS,
+		STREAM_ORDER		// TODO: Switch around with hits
 	}
 }

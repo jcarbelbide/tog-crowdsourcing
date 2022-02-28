@@ -3,11 +3,15 @@ package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowds
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.plugins.shootingstarsplugin.src.main.java.com.andmcadams.shootingstars.ShootingStarsData;
+import net.runelite.client.plugins.shootingstarsplugin.src.main.java.com.andmcadams.shootingstars.ShootingStarsLocation;
+import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ui.WorldHopper;
 import okhttp3.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 @Slf4j
 @Singleton
@@ -45,6 +49,72 @@ public class CrowdsourcingManager
             }
 
         });
+    }
+
+    public void makeGetRequest(WorldHopper worldHopper)
+    {
+        try
+        {
+            Request r = new Request.Builder()
+                    .url(CROWDSOURCING_BASE)
+//                    .addHeader("Authorization", plugin.getShootingStarsSharedKey())
+                    .build();
+            okHttpClient.newCall(r).enqueue(new Callback()
+            {
+                @Override
+                public void onFailure(Call call, IOException e)
+                {
+                    log.debug("Error retrieving shooting star data", e);
+                    worldHopper.setGetError(true);
+                }
+
+                @Override
+                public void onResponse(Call call, Response response)
+                {
+                    if (response.isSuccessful())
+                    {
+                        try
+                        {
+                            JsonArray j = new Gson().fromJson(response.body().string(), JsonArray.class);
+                            worldHopper.setWorldData(parseData(j));
+                            log.debug(j.toString());
+                            worldHopper.setGetError(false);
+                            System.out.println(worldHopper.getWorldData().toString());
+                            worldHopper.updateList();
+                        }
+                        catch (IOException | JsonSyntaxException e)
+                        {
+                            worldHopper.setGetError(true);
+                            log.error(e.getMessage());
+                        }
+                    }
+                    else
+                    {
+                        log.error("Get request unsuccessful");
+                        worldHopper.setGetError(true);
+                    }
+                }
+            });
+        }
+        catch (IllegalArgumentException e)
+        {
+            log.error("Bad URL given: " + e.getLocalizedMessage());
+        }
+    }
+
+    private ArrayList<WorldData> parseData(JsonArray j)
+    {
+        ArrayList<WorldData> l = new ArrayList<>();
+        for (JsonElement jsonElement : j)
+        {
+            JsonObject jObj = jsonElement.getAsJsonObject();
+            WorldData d = new WorldData(
+                    jObj.get("world_number").getAsInt(),
+                    jObj.get("stream_order").getAsString(),
+                    jObj.get("hits").getAsInt());
+            l.add(d);
+        }
+        return l;
     }
 
 }

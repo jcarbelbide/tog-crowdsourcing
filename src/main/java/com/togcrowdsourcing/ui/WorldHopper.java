@@ -28,6 +28,7 @@ package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowds
 
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.clan.ClanChannel;
@@ -45,7 +46,9 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.WorldsFetch;
 import net.runelite.client.game.WorldService;
 import net.runelite.client.input.KeyManager;
+import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.CrowdsourcingManager;
 import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ToGCrowdsourcingConfig;
+import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.WorldData;
 import net.runelite.client.plugins.worldhopper.WorldHopperPlugin;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
@@ -100,8 +103,12 @@ public class WorldHopper
 	@Inject
 	private OverlayManager overlayManager;
 
+	@Getter
 	@Inject
 	private WorldService worldService;
+
+	@Inject
+	private CrowdsourcingManager crowdsourcingManager;
 
 	private ScheduledExecutorService hopperExecutorService;
 
@@ -114,10 +121,16 @@ public class WorldHopper
 	@Getter
 	private int lastWorld;
 
-	private int favoriteWorld1, favoriteWorld2;
-
 	private int currentWorld;
 	private Instant lastFetch;
+
+	@Getter
+	@Setter
+	private boolean getError;
+
+	@Getter
+	@Setter
+	private ArrayList<WorldData> worldData = new ArrayList<>();
 
 	@Inject
 	private WorldHopper()
@@ -125,15 +138,15 @@ public class WorldHopper
 
 	}
 
-	public void startUpWorldHopper() throws Exception
+	public void startUpWorldHopper()
 	{
 		panel = new WorldSwitcherPanel(this);
 
 		BufferedImage icon = ImageUtil.loadImageResource(WorldHopperPlugin.class, "icon.png");
 		navButton = NavigationButton.builder()
-			.tooltip("World Switcher")
+			.tooltip("ToG Crowdsourcing")
 			.icon(icon)
-			.priority(3)
+			.priority(10)
 			.panel(panel)
 			.build();
 
@@ -142,19 +155,16 @@ public class WorldHopper
 			clientToolbar.addNavigation(navButton);
 		}
 
-		// The plugin has its own executor for pings, as it blocks for a long time
-		hopperExecutorService = new ExecutorServiceExceptionLogger(Executors.newSingleThreadScheduledExecutor());
-
 		// populate initial world list
 		updateList();
+
+		crowdsourcingManager.makeGetRequest(this);
 	}
 
-	public void shutDownWorldHopper() throws Exception
+	public void shutDownWorldHopper()
 	{
 		clientToolbar.removeNavigation(navButton);
 
-		hopperExecutorService.shutdown();
-		hopperExecutorService = null;
 	}
 
 	@Subscribe
@@ -178,28 +188,6 @@ public class WorldHopper
 		}
 	}
 
-	private void setFavoriteConfig(int world)
-	{
-		configManager.setConfiguration(ToGCrowdsourcingConfig.GROUP, "favorite_" + world, true);
-	}
-
-	private boolean isFavoriteConfig(int world)
-	{
-		Boolean favorite = configManager.getConfiguration(ToGCrowdsourcingConfig.GROUP, "favorite_" + world, Boolean.class);
-		return favorite != null && favorite;
-	}
-
-	private void clearFavoriteConfig(int world)
-	{
-		configManager.unsetConfiguration(ToGCrowdsourcingConfig.GROUP, "favorite_" + world);
-	}
-
-	boolean isFavorite(World world)
-	{
-		int id = world.getId();
-		return id == favoriteWorld1 || id == favoriteWorld2 || isFavoriteConfig(id);
-	}
-
 	int getCurrentWorld()
 	{
 		return client.getWorld();
@@ -208,35 +196,6 @@ public class WorldHopper
 	void hopTo(World world)
 	{
 		clientThread.invoke(() -> hop(world.getId()));
-	}
-
-	void addToFavorites(World world)
-	{
-		log.debug("Adding world {} to favorites", world.getId());
-		setFavoriteConfig(world.getId());
-		panel.updateFavoriteMenu(world.getId(), true);
-	}
-
-	void removeFromFavorites(World world)
-	{
-		log.debug("Removing world {} from favorites", world.getId());
-		clearFavoriteConfig(world.getId());
-		panel.updateFavoriteMenu(world.getId(), false);
-	}
-
-	@Subscribe
-	public void onVarbitChanged(VarbitChanged varbitChanged)
-	{
-		int old1 = favoriteWorld1;
-		int old2 = favoriteWorld2;
-
-		favoriteWorld1 = client.getVar(Varbits.WORLDHOPPER_FAVROITE_1);
-		favoriteWorld2 = client.getVar(Varbits.WORLDHOPPER_FAVROITE_2);
-
-		if (old1 != favoriteWorld1 || old2 != favoriteWorld2)
-		{
-			SwingUtilities.invokeLater(panel::updateList);
-		}
 	}
 
 	@Subscribe
@@ -257,6 +216,7 @@ public class WorldHopper
 	@Subscribe
 	public void onWorldListLoad(WorldListLoad worldListLoad)
 	{
+		System.out.println("onWorldListLoad");
 		if (!config.showSidebar())
 		{
 			return;
@@ -273,6 +233,7 @@ public class WorldHopper
 		this.lastFetch = Instant.now(); // This counts as a fetch as it updates populations
 	}
 
+	// This is the right click refresh menu item
 	void refresh()
 	{
 		Instant now = Instant.now();
@@ -289,137 +250,16 @@ public class WorldHopper
 	@Subscribe
 	public void onWorldsFetch(WorldsFetch worldsFetch)
 	{
+		System.out.println("onWorldFetch");
 		updateList();
 	}
 
 	/**
 	 * This method ONLY updates the list's UI, not the actual world list and data it displays.
 	 */
-	private void updateList()
+	public void updateList()
 	{
-		WorldResult worldResult = worldService.getWorlds();
-		if (worldResult != null)
-		{
-			SwingUtilities.invokeLater(() -> panel.populate(worldResult.getWorlds()));
-		}
-	}
-
-	// TODO This function may never be called. It might just be for quickhopping out of danger? Might be safe to delete
-	private void hop(boolean previous)
-	{
-		WorldResult worldResult = worldService.getWorlds();
-		if (worldResult == null || client.getGameState() != GameState.LOGGED_IN)
-		{
-			return;
-		}
-
-		World currentWorld = worldResult.findWorld(client.getWorld());
-
-		if (currentWorld == null)
-		{
-			return;
-		}
-
-		EnumSet<WorldType> currentWorldTypes = currentWorld.getTypes().clone();
-		// Make it so you always hop out of PVP and high risk worlds
-		if (config.quickhopOutOfDanger())
-		{
-			currentWorldTypes.remove(WorldType.PVP);
-			currentWorldTypes.remove(WorldType.HIGH_RISK);
-		}
-		// Don't regard these worlds as a type that must be hopped between
-		currentWorldTypes.remove(WorldType.BOUNTY);
-		currentWorldTypes.remove(WorldType.SKILL_TOTAL);
-		currentWorldTypes.remove(WorldType.LAST_MAN_STANDING);
-
-		List<World> worlds = worldResult.getWorlds();
-
-		int worldIdx = worlds.indexOf(currentWorld);
-		int totalLevel = client.getTotalLevel();
-
-		World world;
-		do
-		{
-			/*
-				Get the previous or next world in the list,
-				starting over at the other end of the list
-				if there are no more elements in the
-				current direction of iteration.
-			 */
-			if (previous)
-			{
-				worldIdx--;
-
-				if (worldIdx < 0)
-				{
-					worldIdx = worlds.size() - 1;
-				}
-			}
-			else
-			{
-				worldIdx++;
-
-				if (worldIdx >= worlds.size())
-				{
-					worldIdx = 0;
-				}
-			}
-
-			world = worlds.get(worldIdx);
-
-			EnumSet<WorldType> types = world.getTypes().clone();
-
-			types.remove(WorldType.BOUNTY);
-			// Treat LMS world like casual world
-			types.remove(WorldType.LAST_MAN_STANDING);
-
-			if (types.contains(WorldType.SKILL_TOTAL))
-			{
-				try
-				{
-					int totalRequirement = Integer.parseInt(world.getActivity().substring(0, world.getActivity().indexOf(" ")));
-
-					if (totalLevel >= totalRequirement)
-					{
-						types.remove(WorldType.SKILL_TOTAL);
-					}
-				}
-				catch (NumberFormatException ex)
-				{
-					log.warn("Failed to parse total level requirement for target world", ex);
-				}
-			}
-
-			// Avoid switching to near-max population worlds, as it will refuse to allow the hop if the world is full
-			if (world.getPlayers() >= MAX_PLAYER_COUNT)
-			{
-				continue;
-			}
-
-			// Break out if we've found a good world to hop to
-			if (currentWorldTypes.equals(types))
-			{
-				break;
-			}
-		}
-		while (world != currentWorld);
-
-		if (world == currentWorld)
-		{
-			String chatMessage = new ChatMessageBuilder()
-				.append(ChatColorType.NORMAL)
-				.append("Couldn't find a world to quick-hop to.")
-				.build();
-
-			chatMessageManager.queue(QueuedMessage.builder()
-				.type(ChatMessageType.CONSOLE)
-				.runeLiteFormattedMessage(chatMessage)
-				.build());
-		}
-		else
-		{
-			hop(world.getId());
-		}
+		SwingUtilities.invokeLater(() -> panel.populate(worldData));
 	}
 
 	private void hop(int worldId)
@@ -528,52 +368,6 @@ public class WorldHopper
 	{
 		displaySwitcherAttempts = 0;
 		quickHopTargetWorld = null;
-	}
-
-	// TODO maybe delete
-	private ChatPlayer getChatPlayerFromName(String name)
-	{
-		String cleanName = Text.removeTags(name);
-
-		// Search friends chat members first, because we can always get their world;
-		// friends worlds may be hidden if they have private off. (#5679)
-		FriendsChatManager friendsChatManager = client.getFriendsChatManager();
-		if (friendsChatManager != null)
-		{
-			FriendsChatMember member = friendsChatManager.findByName(cleanName);
-			if (member != null)
-			{
-				return member;
-			}
-		}
-
-		ClanChannel clanChannel = client.getClanChannel();
-		if (clanChannel != null)
-		{
-			ClanChannelMember member = clanChannel.findMember(cleanName);
-			if (member != null)
-			{
-				return member;
-			}
-		}
-
-		clanChannel = client.getGuestClanChannel();
-		if (clanChannel != null)
-		{
-			ClanChannelMember member = clanChannel.findMember(cleanName);
-			if (member != null)
-			{
-				return member;
-			}
-		}
-
-		NameableContainer<Friend> friendContainer = client.getFriendContainer();
-		if (friendContainer != null)
-		{
-			return friendContainer.findByName(cleanName);
-		}
-
-		return null;
 	}
 
 }
