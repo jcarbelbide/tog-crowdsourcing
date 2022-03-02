@@ -24,15 +24,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ui;
+package com.togcrowdsourcing.ui;
 
 import com.google.common.collect.ImmutableList;
+import com.togcrowdsourcing.CrowdsourcingManager;
+import com.togcrowdsourcing.ToGCrowdsourcingConfig;
+import com.togcrowdsourcing.WorldData;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
-import net.runelite.api.clan.ClanChannel;
-import net.runelite.api.clan.ClanChannelMember;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.callback.ClientThread;
@@ -46,9 +47,6 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.WorldsFetch;
 import net.runelite.client.game.WorldService;
 import net.runelite.client.input.KeyManager;
-import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.CrowdsourcingManager;
-import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ToGCrowdsourcingConfig;
-import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.WorldData;
 import net.runelite.client.plugins.worldhopper.WorldHopperPlugin;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
@@ -56,20 +54,18 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.*;
 import net.runelite.http.api.worlds.World;
 import net.runelite.http.api.worlds.WorldResult;
-import net.runelite.http.api.worlds.WorldType;
 
 import javax.inject.Inject;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 public class WorldHopper
 {
-	private static final int REFRESH_THROTTLE = 60_000; // ms
+	private static final int REFRESH_THROTTLE = 500;// TODO 60_000; // ms
 	private static final int MAX_PLAYER_COUNT = 1950;
 
 	private static final int DISPLAY_SWITCHER_MAX_ATTEMPTS = 3;
@@ -213,29 +209,31 @@ public class WorldHopper
 		}
 	}
 
-	@Subscribe
-	public void onWorldListLoad(WorldListLoad worldListLoad)
-	{
-		System.out.println("onWorldListLoad");
-		if (!config.showSidebar())
-		{
-			return;
-		}
-
-		Map<Integer, Integer> worldData = new HashMap<>();
-
-		for (net.runelite.api.World w : worldListLoad.getWorlds())
-		{
-			worldData.put(w.getId(), w.getPlayerCount());
-		}
-
-		panel.updateListData(worldData);
-		this.lastFetch = Instant.now(); // This counts as a fetch as it updates populations
-	}
+	// TODO I took this out but maybe need to add in again.
+//	@Subscribe
+//	public void onWorldListLoad(WorldListLoad worldListLoad)
+//	{
+//		System.out.println("onWorldListLoad");
+//		if (!config.showSidebar())
+//		{
+//			return;
+//		}
+//
+//		Map<Integer, Integer> worldData = new HashMap<>();
+//
+//		for (net.runelite.api.World w : worldListLoad.getWorlds())
+//		{
+//			worldData.put(w.getId(), w.getPlayerCount());
+//		}
+//
+//		panel.updateListData(worldData);
+//		this.lastFetch = Instant.now(); // This counts as a fetch as it updates populations
+//	}
 
 	// This is the right click refresh menu item
 	void refresh()
 	{
+		System.out.println("refresh");
 		Instant now = Instant.now();
 		if (lastFetch != null && now.toEpochMilli() - lastFetch.toEpochMilli() < REFRESH_THROTTLE)
 		{
@@ -251,7 +249,11 @@ public class WorldHopper
 	public void onWorldsFetch(WorldsFetch worldsFetch)
 	{
 		System.out.println("onWorldFetch");
-		updateList();
+		synchronized (this)
+		{
+			crowdsourcingManager.makeGetRequest(this);
+			updateList();
+		}
 	}
 
 	/**

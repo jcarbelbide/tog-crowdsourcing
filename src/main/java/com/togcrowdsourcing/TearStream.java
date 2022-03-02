@@ -1,11 +1,11 @@
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
+package com.togcrowdsourcing;
 
 import lombok.Getter;
 import net.runelite.api.DecorativeObject;
 import net.runelite.api.ObjectID;
 import net.runelite.client.util.ColorUtil;
 
-import java.awt.*;
+import java.awt.Color;
 import java.time.Instant;
 
 public class TearStream

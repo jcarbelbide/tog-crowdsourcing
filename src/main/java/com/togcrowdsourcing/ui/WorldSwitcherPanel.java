@@ -22,23 +22,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ui;
+package com.togcrowdsourcing.ui;
 
 import com.google.common.collect.Ordering;
-import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.WorldData;
+import com.togcrowdsourcing.WorldData;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.DynamicGridLayout;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.http.api.worlds.World;
-import net.runelite.http.api.worlds.WorldResult;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import java.awt.Color;
+import java.awt.GridLayout;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
 import java.util.function.Function;
 
 class WorldSwitcherPanel extends PluginPanel
@@ -90,25 +93,26 @@ class WorldSwitcherPanel extends PluginPanel
 		}
 	}
 
-	void updateListData(Map<Integer, Integer> worldData)
-	{
-		for (WorldTableRow worldTableRow : rows)
-		{
-			World world = worldTableRow.getWorld();
-			Integer playerCount = worldData.get(world.getId());
-			if (playerCount != null)
-			{
-				worldTableRow.updateHitsCount(playerCount);
-			}
-		}
-
-		// If the list is being ordered by player count, then it has to be re-painted
-		// to properly display the new data
-//		if (orderIndex == WorldOrder.HITS)
+	// TODO I took this out but maybe need to add in again. Called in WorldHopper onWorldListReload
+//	void updateListData(Map<Integer, Integer> worldData)
+//	{
+//		for (WorldTableRow worldTableRow : rows)
 //		{
-//			updateList();
+//			World world = worldTableRow.getWorld();
+//			Integer playerCount = worldData.get(world.getId());
+//			if (playerCount != null)
+//			{
+//				worldTableRow.updateHitsCount(playerCount);
+//			}
 //		}
-	}
+//
+//		// If the list is being ordered by player count, then it has to be re-painted
+//		// to properly display the new data
+////		if (orderIndex == WorldOrder.HITS)
+////		{
+////			updateList();
+////		}
+//	}
 
 	void updateList()
 	{

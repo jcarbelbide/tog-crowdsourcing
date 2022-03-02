@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
+package com.togcrowdsourcing;
 
 import javax.inject.Inject;
 import lombok.Getter;

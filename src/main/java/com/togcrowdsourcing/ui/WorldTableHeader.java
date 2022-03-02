@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ui;
+package com.togcrowdsourcing.ui;
 
 import net.runelite.client.plugins.worldhopper.WorldHopperPlugin;
 import net.runelite.client.ui.ColorScheme;
@@ -101,10 +101,7 @@ class WorldTableHeader extends JPanel
 		textLabel.setFont(FontManager.getRunescapeSmallFont());
 
 		final JMenuItem refresh = new JMenuItem("Refresh worlds");
-		refresh.addActionListener(e ->
-		{
-			onRefresh.run();
-		});
+		refresh.addActionListener( e -> onRefresh.run() );
 
 		final JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -132,7 +129,7 @@ class WorldTableHeader extends JPanel
 
 	/**
 	 * If this column header is being used to order, then it should be
-	 * highlighted, changing it's font color and icon.
+	 * highlighted, changing its font color and icon.
 	 */
 	public void highlight(boolean on, boolean ascending)
 	{

@@ -23,17 +23,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
+package com.togcrowdsourcing;
 
 import javax.inject.Inject;
 
 import com.google.inject.Provides;
-import net.runelite.api.World;
+import com.togcrowdsourcing.ui.WorldHopper;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ui.WorldHopper;
 
 @PluginDescriptor(
 		name = "Tears of Guthix Crowdsourcing",

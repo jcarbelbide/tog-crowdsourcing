@@ -1,8 +1,7 @@
-package net.runelite.client.plugins.togcrowdsourcing.src.test.java.com.togcrowdsourcing;
+package com.togcrowdsourcing;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
-import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ToGCrowdsourcingPlugin;
 
 public class ToGCrowdsourcingPluginTest
 {

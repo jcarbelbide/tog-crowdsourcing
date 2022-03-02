@@ -1,6 +1,7 @@
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
+// TODO add license
 
-import lombok.AllArgsConstructor;
+package com.togcrowdsourcing;
+
 import lombok.Data;
 
 @Data

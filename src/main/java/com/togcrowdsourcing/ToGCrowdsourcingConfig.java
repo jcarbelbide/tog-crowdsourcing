@@ -1,9 +1,8 @@
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
+package com.togcrowdsourcing;
 
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
-import net.runelite.client.ui.overlay.components.ComponentConstants;
 
 @ConfigGroup("example")
 public interface ToGCrowdsourcingConfig extends Config

@@ -1,14 +1,14 @@
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
+// TODO add license
+package com.togcrowdsourcing;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.gson.*;
+import com.togcrowdsourcing.ui.WorldHopper;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.plugins.shootingstarsplugin.src.main.java.com.andmcadams.shootingstars.ShootingStarsData;
-import net.runelite.client.plugins.shootingstarsplugin.src.main.java.com.andmcadams.shootingstars.ShootingStarsLocation;
-import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ui.WorldHopper;
 import okhttp3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -77,7 +77,6 @@ public class CrowdsourcingManager
                         {
                             JsonArray j = new Gson().fromJson(response.body().string(), JsonArray.class);
                             worldHopper.setWorldData(parseData(j));
-                            log.debug(j.toString());
                             worldHopper.setGetError(false);
                             System.out.println(worldHopper.getWorldData().toString());
                             worldHopper.updateList();
@@ -105,6 +104,9 @@ public class CrowdsourcingManager
     private ArrayList<WorldData> parseData(JsonArray j)
     {
         ArrayList<WorldData> l = new ArrayList<>();
+
+        if (j == null) {return l;}
+
         for (JsonElement jsonElement : j)
         {
             JsonObject jObj = jsonElement.getAsJsonObject();

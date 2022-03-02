@@ -22,11 +22,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.ui;
+package com.togcrowdsourcing.ui;
 
+import com.togcrowdsourcing.WorldData;
 import lombok.AccessLevel;
 import lombok.Getter;
-import net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.WorldData;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.http.api.worlds.World;
@@ -39,6 +39,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
+import net.runelite.client.plugins.worldhopper.WorldHopperPlugin;
 
 class WorldTableRow extends JPanel
 {
@@ -59,10 +60,10 @@ class WorldTableRow extends JPanel
 
 	static
 	{
-		FLAG_AUS = new ImageIcon(ImageUtil.loadImageResource(WorldHopper.class, "flag_aus.png"));
-		FLAG_UK = new ImageIcon(ImageUtil.loadImageResource(WorldHopper.class, "flag_uk.png"));
-		FLAG_US = new ImageIcon(ImageUtil.loadImageResource(WorldHopper.class, "flag_us.png"));
-		FLAG_GER = new ImageIcon(ImageUtil.loadImageResource(WorldHopper.class, "flag_ger.png"));
+		FLAG_AUS = new ImageIcon(ImageUtil.loadImageResource(WorldHopperPlugin.class, "flag_aus.png"));
+		FLAG_UK = new ImageIcon(ImageUtil.loadImageResource(WorldHopperPlugin.class, "flag_uk.png"));
+		FLAG_US = new ImageIcon(ImageUtil.loadImageResource(WorldHopperPlugin.class, "flag_us.png"));
+		FLAG_GER = new ImageIcon(ImageUtil.loadImageResource(WorldHopperPlugin.class, "flag_ger.png"));
 	}
 
 	private JLabel worldField;
@@ -149,11 +150,11 @@ class WorldTableRow extends JPanel
 		worldField.setPreferredSize(new Dimension(WORLD_COLUMN_WIDTH, 0));
 		worldField.setOpaque(false);
 
-		JPanel playersField = buildPlayersField();
+		JPanel playersField = buildHitsField();
 		playersField.setPreferredSize(new Dimension(PLAYERS_COLUMN_WIDTH, 0));
 		playersField.setOpaque(false);
 
-		JPanel activityField = buildActivityField();
+		JPanel activityField = buildStreamOrderField();
 		activityField.setBorder(new EmptyBorder(5, 5, 5, 5));
 		activityField.setOpaque(false);
 
@@ -167,11 +168,12 @@ class WorldTableRow extends JPanel
 		add(rightSide, BorderLayout.CENTER);
 	}
 
-	void updateHitsCount(int hitsCount)
-	{
-		this.updatedHitsCount = hitsCount;
-		hitsField.setText(hitsCountString(hitsCount));
-	}
+	// TODO I took this out but maybe need to add in again. Called in WroldSwitcherPanel Update List Data
+//	void updateHitsCount(int hitsCount)
+//	{
+//		this.updatedHitsCount = hitsCount;
+//		hitsField.setText(hitsCountString(hitsCount));
+//	}
 
 	private static String hitsCountString(int hitsCount)
 	{
@@ -213,12 +215,12 @@ class WorldTableRow extends JPanel
 	/**
 	 * Builds the players list field (containing the amount of players logged in that world).
 	 */
-	private JPanel buildPlayersField()
+	private JPanel buildHitsField()
 	{
 		JPanel column = new JPanel(new BorderLayout());
 		column.setBorder(new EmptyBorder(0, 5, 0, 5));
 
-		hitsField = new JLabel(hitsCountString(world.getPlayers()));
+		hitsField = new JLabel(hitsCountString(worldData.getHits()));
 		hitsField.setFont(FontManager.getRunescapeSmallFont());
 
 		column.add(hitsField, BorderLayout.WEST);
@@ -229,17 +231,17 @@ class WorldTableRow extends JPanel
 	/**
 	 * Builds the activity list field (containing that world's activity/theme).
 	 */
-	private JPanel buildActivityField()
+	private JPanel buildStreamOrderField()
 	{
 		JPanel column = new JPanel(new BorderLayout());
 		column.setBorder(new EmptyBorder(0, 5, 0, 5));
 
-		String activity = world.getActivity();
-		streamOrderField = new JLabel(activity);
+		String streamOrder = worldData.getStream_order();
+		streamOrderField = new JLabel(streamOrder);
 		streamOrderField.setFont(FontManager.getRunescapeSmallFont());
-		if (activity != null && activity.length() > 16)
+		if (streamOrder != null && streamOrder.length() > 16)
 		{
-			streamOrderField.setToolTipText(activity);
+			streamOrderField.setToolTipText(streamOrder);
 			// Pass up events - https://stackoverflow.com/a/14932443
 			streamOrderField.addMouseListener(new MouseAdapter()
 			{

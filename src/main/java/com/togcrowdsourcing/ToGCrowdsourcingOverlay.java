@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing;
+package com.togcrowdsourcing;
 
 import net.runelite.api.DecorativeObject;
 import net.runelite.api.ObjectID;
@@ -39,7 +39,8 @@ import java.awt.image.BufferedImage;
 import java.time.Instant;
 import java.util.ArrayList;
 
-import static net.runelite.client.plugins.togcrowdsourcing.src.main.java.com.togcrowdsourcing.StreamOrderDetector.NUMBER_OF_TEAR_STREAMS;
+import static com.togcrowdsourcing.StreamOrderDetector.NUMBER_OF_TEAR_STREAMS;
+
 
 class ToGCrowdsourcingOverlay extends OverlayPanel
 {
