@@ -43,7 +43,7 @@ public class CrowdsourcingManager
             @Override
             public void onResponse(Call call, Response response)
             {
-                System.out.println(response.body());
+//                System.out.println(response.body());
                 response.close();
             }
 
@@ -77,7 +77,7 @@ public class CrowdsourcingManager
                             JsonArray j = new Gson().fromJson(response.body().string(), JsonArray.class);
                             worldHopper.setWorldData(parseData(j));
                             worldHopper.setGetError(false);
-                            System.out.println(worldHopper.getWorldData().toString());
+//                            System.out.println(worldHopper.getWorldData().toString());
                             worldHopper.updateList();
                         }
                         catch (IOException | JsonSyntaxException e)

@@ -90,7 +90,7 @@ public class StreamOrderDetector
         if (client.getGameState() != GameState.LOGGED_IN) { return; }
         if (client.getLocalPlayer().getWorldLocation().getRegionID() != TOG_REGION) return;
 
-        // Keep track of the time between the last stream and the current stream. If above a certain threshold and data is not yet valid, then
+        // Keep track of the time between the last stream and the current stream. If above a certain threshold and data is not yet valid, then clear working list
 
         DecorativeObject object = event.getDecorativeObject();
 
@@ -102,25 +102,19 @@ public class StreamOrderDetector
             TearStream tearStream = new TearStream(object, timeSinceLastSpawn, spawnInstant);
             lastSpawnInstant = spawnInstant;
 
-            System.out.println("Color: " + overlay.streamToString(tearStream) + " Time since last spawn: " + timeSinceLastSpawn);
+//            System.out.println("Color: " + overlay.streamToString(tearStream) + " Time since last spawn: " + timeSinceLastSpawn);
             // Do not want to update unless it has been around 1 tick. Otherwise, it could be the client loading streams in at a random time and calling this function 6 times in quick succession.
             // If the above comment is true, then clear the list and return. It is potentially bad data.
             // TODO: Implement this function above. In addition, look into taking out lastInstant. See if we can just use the last element in the array.
             if (timeSinceLastSpawn < STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
             {
                 streamList.clear();
-                System.out.println("Stream Cleared from onDecorativeObjectSpawned");
+//                System.out.println("Stream Cleared from onDecorativeObjectSpawned");
                 return;
             }
 
-//			if (timeSinceLastSpawn > STREAM_LONG_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
-//			{
-//				System.out.println(streamListToString(streamList));
-//				streamList.clear();
-//			}
-
             streamList.add(tearStream);
-            System.out.println(streamListToStringForAPI(overlay.padWithNull(streamList)));
+//            System.out.println(streamListToStringForAPI(overlay.padWithNull(streamList)));
         }
 
 
@@ -129,13 +123,13 @@ public class StreamOrderDetector
     @Subscribe
     private void onGameTick(GameTick event)
     {
-        // fix after the list is 6, it will add one more to the list to make it 7, then clear, so the list wil be 5
         if (dataValid) { return; }
         verifyDataIsValid();
     }
 
     private void verifyDataIsValid()
     {
+        // If stream list has 6 in a row with short delays, then we know its valid
         if (streamList.size() == 0) { return; }
         else if (streamList.size() > NUMBER_OF_TEAR_STREAMS)
         {
@@ -156,45 +150,25 @@ public class StreamOrderDetector
             Instant lastSpawnInstant = streamList.get(streamList.size() - 1).getSpawnInstant();
             long timeSinceLastSpawn = ChronoUnit.MILLIS.between(lastSpawnInstant, currentInstant);
             long timeBetweenSpawnForLatestTear = streamList.get(streamList.size() - 1).getTimeSinceLastSpawn();
-//			if (timeSinceLastSpawn > STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
-            // (Math.abs(timeSinceLastSpawn - STREAM_SHORT_INTERVAL) > Math.abs(STREAM_SHORT_INTERVAL * STREAM_INTERVAL_TOLERANCE)
-            System.out.println("5 or under streams");
-            if (timeBetweenSpawnForLatestTear < STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE) ||
-                    timeSinceLastSpawn > STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
+//            System.out.println("5 or under streams");
+            if (timeBetweenSpawnForLatestTear < STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE) ||      // Self explanatory, if the time between spawns stored in the latest tear is less than the short interval, clear. Should never happen.
+                    timeSinceLastSpawn > STREAM_SHORT_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))               // If the time between now and the last spawn was greater than the short interval (600ms), clear the list. Streams need to spawn within 600ms of each other.
             {
                 streamList.clear();
-                System.out.println("Stream Cleared from verifyDataValid. Since: " + timeSinceLastSpawn + " Between: " + timeBetweenSpawnForLatestTear);
+//                System.out.println("Stream Cleared from verifyDataValid. Since: " + timeSinceLastSpawn + " Between: " + timeBetweenSpawnForLatestTear);
             }
         }
         else if (streamList.size() == NUMBER_OF_TEAR_STREAMS)
         {
-//			// Tear 0 must be LONG
-//			if (streamList.get(0).getTimeSinceLastSpawn() < STREAM_LONG_INTERVAL * (1 - STREAM_INTERVAL_TOLERANCE))
-//			{
-//				System.out.println("Data NOT valid (First Stream not Valid)");
-//				streamList.clear();
-//				return;
-//			}
-//			// Tear 1-5 must be SHORT
-//			for (int i = 1; i < NUMBER_OF_TEAR_STREAMS; i++)
-//			{
-//				if (Math.abs(streamList.get(i).getTimeSinceLastSpawn() - STREAM_SHORT_INTERVAL) > Math.abs(STREAM_SHORT_INTERVAL * STREAM_INTERVAL_TOLERANCE))
-//				{
-//					System.out.println("Data NOT valid (1-5 not valid)");
-//					streamList.clear();
-//					return;
-//				}
-//			}
-            // I think if it manages to store 6 streams, the data is always valid. Every hop, the stream list is cleared,
-            // so no worries about getting a stream from a previous world. If it only reaches 5 because we hopped in the
-            // middle of the streams changing, then the whole list will be cleared from the previous if statement.
-            System.out.println("Data IS valid!");
+            // If it manages to store 6 streams with all of our checks, the data is always valid. Every hop, the stream
+            // list is cleared, so no worries about getting a stream from a previous world. If it only reaches 5 because
+            // we hopped in the middle of the streams changing, then the whole list will be cleared from the previous if
+            // statement (and onGameStateChanged()).
+//            System.out.println("Data IS valid!");
             dataValid = true;
             submitToAPI();
             return;
         }
-        // If stream list has 6 in a row with short delays, then we know its valid
-        // if stream list has 6, its valid if first has delay of around long, and rest are short
     }
 
     public ArrayList<String> streamListToStringArray(ArrayList<TearStream> tearStreamArrayList)
