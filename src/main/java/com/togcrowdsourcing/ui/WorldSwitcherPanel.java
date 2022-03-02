@@ -164,7 +164,7 @@ class WorldSwitcherPanel extends PluginPanel
 			WorldData worldData = worldDataList.get(i);
 			World world = worldResult.findWorld(worldData.getWorld_number());
 
-			if (shouldWorldBeSkipped(world, config)) { continue; }
+			if (shouldWorldBeSkipped(world, worldData, config)) { continue; }
 
 			boolean isCurrentWorld = worldData.getWorld_number() == worldHopper.getCurrentWorld() && worldHopper.getLastWorld() != 0;
 
@@ -174,7 +174,7 @@ class WorldSwitcherPanel extends PluginPanel
 		updateList();
 	}
 
-	private boolean shouldWorldBeSkipped(World world, ToGCrowdsourcingConfig config) {
+	private boolean shouldWorldBeSkipped(World world, WorldData worldData, ToGCrowdsourcingConfig config) {
 		if (world == null) { return true; }
 		if (world.getTypes().contains(WorldType.PVP) && config.hidePVPWorlds()) { return true; }		// Hide PVP Worlds if config item set.
 		if (world.getTypes().contains(WorldType.HIGH_RISK) && config.hideHighRiskWorlds()) { return true; }
@@ -183,6 +183,9 @@ class WorldSwitcherPanel extends PluginPanel
 		if (world.getTypes().contains(WorldType.DEADMAN)) { return true; }
 		if (world.getTypes().contains(WorldType.TOURNAMENT)) { return true; }
 		if (world.getTypes().contains(WorldType.SEASONAL)) { return true; }
+
+		if (config.onlyShowOptimalWorlds() && !(worldData.getStream_order().equals("gggbbb") || worldData.getStream_order().equals("bbbggg"))) { return true; }
+
 		return false;
 	}
 

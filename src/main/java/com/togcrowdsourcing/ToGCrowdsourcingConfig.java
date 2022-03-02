@@ -61,10 +61,21 @@ public interface ToGCrowdsourcingConfig extends Config
 	}
 
 	@ConfigItem(
+			keyName = "onlyShowOptimalWorlds",
+			name = "Only Show Optimal Worlds",
+			description = "Only show worlds that have a 'gggbbb' or 'bbbggg' pattern. Off by default. ",
+			position = 3
+	)
+	default boolean onlyShowOptimalWorlds()
+	{
+		return false;
+	}
+
+	@ConfigItem(
 			keyName = "showSidebar",
 			name = "Show world switcher sidebar",
 			description = "Show sidebar containing all worlds that mimics in-game interface",
-			position = 3
+			position = 4
 	)
 	default boolean showSidebar()
 	{
@@ -75,7 +86,7 @@ public interface ToGCrowdsourcingConfig extends Config
 			keyName = "showOverlay",
 			name = "Show stream order overlay",
 			description = "Show the overlay that shows the tear stream data being collected.",
-			position = 4
+			position = 5
 	)
 	default boolean showOverlay()
 	{
@@ -86,7 +97,7 @@ public interface ToGCrowdsourcingConfig extends Config
 			keyName = "showMessage",
 			name = "Show world hop message in chat",
 			description = "Shows what world is being hopped to in the chat",
-			position = 5
+			position = 6
 	)
 	default boolean showWorldHopMessage()
 	{

@@ -29,6 +29,7 @@ package com.togcrowdsourcing.ui;
 import com.google.common.collect.ImmutableList;
 import com.togcrowdsourcing.CrowdsourcingManager;
 import com.togcrowdsourcing.ToGCrowdsourcingConfig;
+import com.togcrowdsourcing.ToGCrowdsourcingPlugin;
 import com.togcrowdsourcing.WorldData;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,7 +48,6 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.WorldsFetch;
 import net.runelite.client.game.WorldService;
 import net.runelite.client.input.KeyManager;
-import net.runelite.client.plugins.worldhopper.WorldHopperPlugin;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -133,7 +133,7 @@ public class WorldHopper
 		panel = new WorldSwitcherPanel(this);
 		this.config = config;
 
-		BufferedImage icon = ImageUtil.loadImageResource(WorldHopperPlugin.class, "icon.png");
+		final BufferedImage icon = ImageUtil.loadImageResource(ToGCrowdsourcingPlugin.class, "/tog-icon.png");
 		navButton = NavigationButton.builder()
 			.tooltip("ToG Crowdsourcing")
 			.icon(icon)
@@ -209,7 +209,7 @@ public class WorldHopper
 	// This is the right click refresh menu item
 	void refresh()
 	{
-		System.out.println("refresh");
+//		System.out.println("refresh");
 		Instant now = Instant.now();
 		if (lastFetch != null && now.toEpochMilli() - lastFetch.toEpochMilli() < REFRESH_THROTTLE)
 		{
@@ -224,7 +224,7 @@ public class WorldHopper
 	@Subscribe
 	public void onWorldsFetch(WorldsFetch worldsFetch)
 	{
-		System.out.println("onWorldFetch");
+//		System.out.println("onWorldFetch");
 		synchronized (this)
 		{
 			crowdsourcingManager.makeGetRequest(this);

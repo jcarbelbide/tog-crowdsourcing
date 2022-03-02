@@ -57,6 +57,8 @@ class WorldTableRow extends JPanel
 	private static final Color MEMBERS_WORLD = new Color(210, 193, 53);
 	private static final Color FREE_WORLD = new Color(200, 200, 200);
 	private static final Color SEASONAL_WORLD = new Color(133, 177, 178);
+	private static final Color GGGBBB_WORLD = new Color(36, 195, 250);
+	private static final Color BBBGGG_WORLD = new Color(187, 113, 255);
 
 	static
 	{
@@ -196,6 +198,14 @@ class WorldTableRow extends JPanel
 		else if (world.getTypes().contains(WorldType.NOSAVE_MODE))
 		{
 			streamOrderField.setForeground(TOURNAMENT_WORLD);
+		}
+		else if (worldData.getStream_order().equals("gggbbb"))
+		{
+			streamOrderField.setForeground(GGGBBB_WORLD);
+		}
+		else if (worldData.getStream_order().equals("bbbggg"))
+		{
+			streamOrderField.setForeground(BBBGGG_WORLD);
 		}
 		else
 		{
