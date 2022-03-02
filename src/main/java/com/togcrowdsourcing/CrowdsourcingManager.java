@@ -8,7 +8,6 @@ import com.google.gson.*;
 import com.togcrowdsourcing.ui.WorldHopper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +37,7 @@ public class CrowdsourcingManager
             @Override
             public void onFailure(Call call, IOException e)
             {
-                System.out.println("Failure sending to crowdsourcing server.");
+                log.debug("Failure sending to crowdsourcing server.");
             }
 
             @Override

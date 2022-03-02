@@ -95,7 +95,6 @@ public class TripleLineComponent implements LayoutableRenderableEntity
 		final int middleFullWidth = getLineWidth(middle, rfm);
 		final TextComponent textComponent = new TextComponent();
 
-		// TODO: Change below if statement
 		if (preferredSize.width < leftFullWidth + rightFullWidth + middleFullWidth)
 		{
 			int leftSmallWidth = preferredSize.width;

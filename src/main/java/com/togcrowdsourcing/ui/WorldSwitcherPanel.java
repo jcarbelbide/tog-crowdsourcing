@@ -25,11 +25,15 @@
 package com.togcrowdsourcing.ui;
 
 import com.google.common.collect.Ordering;
+import com.togcrowdsourcing.ToGCrowdsourcingConfig;
 import com.togcrowdsourcing.WorldData;
+import lombok.Getter;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.DynamicGridLayout;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.http.api.worlds.World;
+import net.runelite.http.api.worlds.WorldResult;
+import net.runelite.http.api.worlds.WorldType;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -40,7 +44,6 @@ import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.List;
 import java.util.function.Function;
 
@@ -48,17 +51,20 @@ class WorldSwitcherPanel extends PluginPanel
 {
 	private static final Color ODD_ROW = new Color(44, 44, 44);
 
+	@Getter
 	private static final int WORLD_COLUMN_WIDTH = 60;
-	private static final int PLAYERS_COLUMN_WIDTH = 40;
+
+	@Getter
+	private static final int HITS_COLUMN_WIDTH = 50;
 
 	private final JPanel listContainer = new JPanel();
 
 	private WorldTableHeader worldHeader;
-	private WorldTableHeader playersHeader;
+	private WorldTableHeader hitsHeader;
 	private WorldTableHeader activityHeader;
 
-	private WorldOrder orderIndex = WorldOrder.WORLD;
-	private boolean ascendingOrder = true;
+	private WorldOrder orderIndex = WorldOrder.STREAM_ORDER;
+	private boolean ascendingOrder = false;
 
 	private final ArrayList<WorldTableRow> rows = new ArrayList<>();
 	private final WorldHopper worldHopper;
@@ -93,27 +99,6 @@ class WorldSwitcherPanel extends PluginPanel
 		}
 	}
 
-	// TODO I took this out but maybe need to add in again. Called in WorldHopper onWorldListReload
-//	void updateListData(Map<Integer, Integer> worldData)
-//	{
-//		for (WorldTableRow worldTableRow : rows)
-//		{
-//			World world = worldTableRow.getWorld();
-//			Integer playerCount = worldData.get(world.getId());
-//			if (playerCount != null)
-//			{
-//				worldTableRow.updateHitsCount(playerCount);
-//			}
-//		}
-//
-//		// If the list is being ordered by player count, then it has to be re-painted
-//		// to properly display the new data
-////		if (orderIndex == WorldOrder.HITS)
-////		{
-////			updateList();
-////		}
-//	}
-
 	void updateList()
 	{
 		rows.sort((r1, r2) ->
@@ -136,7 +121,7 @@ class WorldSwitcherPanel extends PluginPanel
 			}
 		});
 
-		// TODO sort by stream order first.
+		// TODO Sort by stream orders that have 3 letters in a row first
 //		rows.sort((r1, r2) ->
 //		{
 //			boolean b1 = plugin.isFavorite(r1.getWorld());
@@ -168,21 +153,18 @@ class WorldSwitcherPanel extends PluginPanel
 		return ordering.compare(compareByFn.apply(row1), compareByFn.apply(row2));
 	}
 
-	void populate(List<WorldData> worldDataList)
+	void populate(List<WorldData> worldDataList, ToGCrowdsourcingConfig config)
 	{
 		rows.clear();
 
-//		WorldResult worldResult = worldHopper.getWorldService().getWorlds();
+		WorldResult worldResult = worldHopper.getWorldService().getWorlds();
 
 		for (int i = 0; i < worldDataList.size(); i++)
 		{
 			WorldData worldData = worldDataList.get(i);
-//			World world = worldResult.findWorld(worldData.getWorld_number());
-			// Don't try to add world if the world doesn't exist
-//			if (world == null)
-//			{
-//				continue;
-//			}
+			World world = worldResult.findWorld(worldData.getWorld_number());
+
+			if (shouldWorldBeSkipped(world, config)) { continue; }
 
 			boolean isCurrentWorld = worldData.getWorld_number() == worldHopper.getCurrentWorld() && worldHopper.getLastWorld() != 0;
 
@@ -192,10 +174,22 @@ class WorldSwitcherPanel extends PluginPanel
 		updateList();
 	}
 
+	private boolean shouldWorldBeSkipped(World world, ToGCrowdsourcingConfig config) {
+		if (world == null) { return true; }
+		if (world.getTypes().contains(WorldType.PVP) && config.hidePVPWorlds()) { return true; }		// Hide PVP Worlds if config item set.
+		if (world.getTypes().contains(WorldType.HIGH_RISK) && config.hideHighRiskWorlds()) { return true; }
+		if (!world.getTypes().contains(WorldType.MEMBERS)) { return true; }
+		if (world.getTypes().contains(WorldType.NOSAVE_MODE)) { return true; }
+		if (world.getTypes().contains(WorldType.DEADMAN)) { return true; }
+		if (world.getTypes().contains(WorldType.TOURNAMENT)) { return true; }
+		if (world.getTypes().contains(WorldType.SEASONAL)) { return true; }
+		return false;
+	}
+
 	private void orderBy(WorldOrder order)
 	{
 		worldHeader.highlight(false, ascendingOrder);
-		playersHeader.highlight(false, ascendingOrder);
+		hitsHeader.highlight(false, ascendingOrder);
 		activityHeader.highlight(false, ascendingOrder);
 
 		switch (order)
@@ -204,7 +198,7 @@ class WorldSwitcherPanel extends PluginPanel
 				worldHeader.highlight(true, ascendingOrder);
 				break;
 			case HITS:
-				playersHeader.highlight(true, ascendingOrder);
+				hitsHeader.highlight(true, ascendingOrder);
 				break;
 			case STREAM_ORDER:
 				activityHeader.highlight(true, ascendingOrder);
@@ -240,9 +234,9 @@ class WorldSwitcherPanel extends PluginPanel
 			}
 		});
 
-		playersHeader = new WorldTableHeader("Hits", orderIndex == WorldOrder.HITS, ascendingOrder, worldHopper::refresh);
-		playersHeader.setPreferredSize(new Dimension(PLAYERS_COLUMN_WIDTH, 0));
-		playersHeader.addMouseListener(new MouseAdapter()
+		hitsHeader = new WorldTableHeader("Hits", orderIndex == WorldOrder.HITS, ascendingOrder, worldHopper::refresh);
+		hitsHeader.setPreferredSize(new Dimension(HITS_COLUMN_WIDTH, 0));
+		hitsHeader.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
@@ -272,7 +266,7 @@ class WorldSwitcherPanel extends PluginPanel
 		});
 
 		leftSide.add(worldHeader, BorderLayout.WEST);
-		leftSide.add(playersHeader, BorderLayout.CENTER);
+		leftSide.add(hitsHeader, BorderLayout.CENTER);
 
 		rightSide.add(activityHeader, BorderLayout.CENTER);
 
@@ -303,6 +297,6 @@ class WorldSwitcherPanel extends PluginPanel
 	{
 		WORLD,
 		HITS,
-		STREAM_ORDER		// TODO: Switch around with hits
+		STREAM_ORDER
 	}
 }

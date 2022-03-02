@@ -48,8 +48,8 @@ class WorldTableRow extends JPanel
 	private static final ImageIcon FLAG_US;
 	private static final ImageIcon FLAG_GER;
 
-	private static final int WORLD_COLUMN_WIDTH = 60;
-	private static final int PLAYERS_COLUMN_WIDTH = 40;
+	private static final int WORLD_COLUMN_WIDTH = WorldSwitcherPanel.getWORLD_COLUMN_WIDTH();
+	private static final int HITS_COLUMN_WIDTH = WorldSwitcherPanel.getHITS_COLUMN_WIDTH();
 
 	private static final Color CURRENT_WORLD = new Color(66, 227, 17);
 	private static final Color DANGEROUS_WORLD = new Color(251, 62, 62);
@@ -150,9 +150,9 @@ class WorldTableRow extends JPanel
 		worldField.setPreferredSize(new Dimension(WORLD_COLUMN_WIDTH, 0));
 		worldField.setOpaque(false);
 
-		JPanel playersField = buildHitsField();
-		playersField.setPreferredSize(new Dimension(PLAYERS_COLUMN_WIDTH, 0));
-		playersField.setOpaque(false);
+		JPanel hitsField = buildHitsField();
+		hitsField.setPreferredSize(new Dimension(HITS_COLUMN_WIDTH, 0));
+		hitsField.setOpaque(false);
 
 		JPanel activityField = buildStreamOrderField();
 		activityField.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -161,19 +161,12 @@ class WorldTableRow extends JPanel
 		recolour(current);
 
 		leftSide.add(worldField, BorderLayout.WEST);
-		leftSide.add(playersField, BorderLayout.CENTER);
+		leftSide.add(hitsField, BorderLayout.CENTER);
 		rightSide.add(activityField, BorderLayout.CENTER);
 
 		add(leftSide, BorderLayout.WEST);
 		add(rightSide, BorderLayout.CENTER);
 	}
-
-	// TODO I took this out but maybe need to add in again. Called in WroldSwitcherPanel Update List Data
-//	void updateHitsCount(int hitsCount)
-//	{
-//		this.updatedHitsCount = hitsCount;
-//		hitsField.setText(hitsCountString(hitsCount));
-//	}
 
 	private static String hitsCountString(int hitsCount)
 	{
@@ -213,7 +206,7 @@ class WorldTableRow extends JPanel
 	}
 
 	/**
-	 * Builds the players list field (containing the amount of players logged in that world).
+	 * Builds the hits list field (containing the amount of hits logged in that world).
 	 */
 	private JPanel buildHitsField()
 	{

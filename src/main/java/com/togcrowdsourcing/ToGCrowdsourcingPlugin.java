@@ -56,10 +56,10 @@ public class ToGCrowdsourcingPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		eventBus.register(streamOrderDetector);
-		streamOrderDetector.startUpStreamOrderDetector();
+		streamOrderDetector.startUpStreamOrderDetector(config, worldHopper);
 
 		eventBus.register(worldHopper);
-		worldHopper.startUpWorldHopper();
+		worldHopper.startUpWorldHopper(config);
 	}
 
 	@Override

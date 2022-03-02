@@ -61,6 +61,8 @@ class ToGCrowdsourcingOverlay extends OverlayPanel
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
+		if (!config.showOverlay()) { return null; }
+
 		ArrayList<TearStream> paddedList = padWithNull(streamOrderDetector.getStreamList());
 
 		TripleLineComponent topLine = TripleLineComponent.builder()
@@ -99,12 +101,6 @@ class ToGCrowdsourcingOverlay extends OverlayPanel
 		panelComponent.getChildren().add(
 				tearColorsAndCheckboxSplitComponent
 		);
-
-//		panelComponent.getChildren().add(
-//				topLine);
-//
-//		panelComponent.getChildren().add(
-//				bottomLine);
 
 		return super.render(graphics);
 	}

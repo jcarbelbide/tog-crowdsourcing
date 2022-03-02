@@ -1,6 +1,8 @@
 package com.togcrowdsourcing;
 
 import javax.inject.Inject;
+
+import com.togcrowdsourcing.ui.WorldHopper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
@@ -30,8 +32,9 @@ public class StreamOrderDetector
     @Inject
     private Client client;
 
-    @Inject
     private ToGCrowdsourcingConfig config;
+
+    private WorldHopper worldHopper;
 
     @Inject
     private ToGCrowdsourcingOverlay overlay;
@@ -51,10 +54,12 @@ public class StreamOrderDetector
 
     }
 
-    public void startUpStreamOrderDetector()
+    public void startUpStreamOrderDetector(ToGCrowdsourcingConfig config, WorldHopper worldHopper)
     {
         log.info("ToG Started");
         dataValid = false;
+        this.config = config;
+        this.worldHopper = worldHopper;
         overlayManager.add(overlay);
     }
 
@@ -244,6 +249,7 @@ public class StreamOrderDetector
             String streamOrder = streamListToStringForAPI(streamList);
             WorldData worldData = new WorldData(currentWorld, streamOrder, 1);
             crowdsourcingManager.submitToAPI(worldData);
+            crowdsourcingManager.makeGetRequest(worldHopper);
         }
     }
 }

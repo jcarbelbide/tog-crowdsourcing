@@ -65,15 +65,10 @@ import java.util.concurrent.ScheduledExecutorService;
 @Slf4j
 public class WorldHopper
 {
-	private static final int REFRESH_THROTTLE = 500;// TODO 60_000; // ms
+	private static final int REFRESH_THROTTLE = 60_000; // ms
 	private static final int MAX_PLAYER_COUNT = 1950;
 
 	private static final int DISPLAY_SWITCHER_MAX_ATTEMPTS = 3;
-
-	private static final String HOP_TO = "Hop-to";
-	private static final String KICK_OPTION = "Kick";
-	private static final ImmutableList<String> BEFORE_OPTIONS = ImmutableList.of("Add friend", "Remove friend", KICK_OPTION);
-	private static final ImmutableList<String> AFTER_OPTIONS = ImmutableList.of("Message");
 
 	@Inject
 	private Client client;
@@ -93,7 +88,6 @@ public class WorldHopper
 	@Inject
 	private ChatMessageManager chatMessageManager;
 
-	@Inject
 	private ToGCrowdsourcingConfig config;
 
 	@Inject
@@ -134,9 +128,10 @@ public class WorldHopper
 
 	}
 
-	public void startUpWorldHopper()
+	public void startUpWorldHopper(ToGCrowdsourcingConfig config)
 	{
 		panel = new WorldSwitcherPanel(this);
+		this.config = config;
 
 		BufferedImage icon = ImageUtil.loadImageResource(WorldHopperPlugin.class, "icon.png");
 		navButton = NavigationButton.builder()
@@ -181,6 +176,8 @@ public class WorldHopper
 					}
 					break;
 			}
+			if (event.getKey().equals("showOverlay")) { return; }
+			else { updateList(); }
 		}
 	}
 
@@ -208,27 +205,6 @@ public class WorldHopper
 			}
 		}
 	}
-
-	// TODO I took this out but maybe need to add in again.
-//	@Subscribe
-//	public void onWorldListLoad(WorldListLoad worldListLoad)
-//	{
-//		System.out.println("onWorldListLoad");
-//		if (!config.showSidebar())
-//		{
-//			return;
-//		}
-//
-//		Map<Integer, Integer> worldData = new HashMap<>();
-//
-//		for (net.runelite.api.World w : worldListLoad.getWorlds())
-//		{
-//			worldData.put(w.getId(), w.getPlayerCount());
-//		}
-//
-//		panel.updateListData(worldData);
-//		this.lastFetch = Instant.now(); // This counts as a fetch as it updates populations
-//	}
 
 	// This is the right click refresh menu item
 	void refresh()
@@ -261,7 +237,7 @@ public class WorldHopper
 	 */
 	public void updateList()
 	{
-		SwingUtilities.invokeLater(() -> panel.populate(worldData));
+		SwingUtilities.invokeLater(() -> panel.populate(worldData, config));
 	}
 
 	private void hop(int worldId)

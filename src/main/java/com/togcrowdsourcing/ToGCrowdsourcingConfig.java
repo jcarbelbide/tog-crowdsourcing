@@ -4,29 +4,51 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup("example")
+@ConfigGroup("togcrowdsourcing")
 public interface ToGCrowdsourcingConfig extends Config
 {
-	String GROUP = "worldhopper";
+	String GROUP = "togcrowdsourcing";
 
 	@ConfigItem(
-			keyName = "quickhopOutOfDanger",
-			name = "Quick-hop out of dangerous worlds",
-			description = "Don't hop to a PVP/high risk world when quick-hopping",
-			position = 2
+			keyName = "hidePVPWorlds",
+			name = "Hide PVP Worlds",
+			description = "Hide PVP worlds in the list of worlds. On by default. ",
+			position = 1
 	)
-	default boolean quickhopOutOfDanger()
+	default boolean hidePVPWorlds()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+			keyName = "hideHighRiskWorlds",
+			name = "Hide High Risk Worlds",
+			description = "Hide High Risk worlds in the list of worlds. Off by default. ",
+			position = 2
+	)
+	default boolean hideHighRiskWorlds()
+	{
+		return false;
 	}
 
 	@ConfigItem(
 			keyName = "showSidebar",
 			name = "Show world switcher sidebar",
 			description = "Show sidebar containing all worlds that mimics in-game interface",
-			position = 4
+			position = 3
 	)
 	default boolean showSidebar()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "showOverlay",
+			name = "Show stream order overlay",
+			description = "Show the overlay that shows the tear stream data being collected.",
+			position = 4
+	)
+	default boolean showOverlay()
 	{
 		return true;
 	}
@@ -35,7 +57,7 @@ public interface ToGCrowdsourcingConfig extends Config
 			keyName = "showMessage",
 			name = "Show world hop message in chat",
 			description = "Shows what world is being hopped to in the chat",
-			position = 6
+			position = 5
 	)
 	default boolean showWorldHopMessage()
 	{
