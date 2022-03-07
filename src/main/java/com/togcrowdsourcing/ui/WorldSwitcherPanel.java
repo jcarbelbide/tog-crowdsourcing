@@ -110,24 +110,11 @@ class WorldSwitcherPanel extends PluginPanel
 				case HITS:
 					return getCompareValue(r1, r2, WorldTableRow::getUpdatedHitsCount);
 				case STREAM_ORDER:
-					// Leave empty activity worlds on the bottom of the list
-					return getCompareValue(r1, r2, row ->
-					{
-						String streamOrder = row.getWorldData().getStream_order();
-						return !streamOrder.equals("-") ? streamOrder : null;
-					});
+					return getCompareValueStreamOrder(r1, r2);
 				default:
 					return 0;
 			}
 		});
-
-		// TODO Sort by stream orders that have 3 letters in a row first
-//		rows.sort((r1, r2) ->
-//		{
-//			boolean b1 = plugin.isFavorite(r1.getWorld());
-//			boolean b2 = plugin.isFavorite(r2.getWorld());
-//			return Boolean.compare(b2, b1);
-//		});
 
 		listContainer.removeAll();
 
@@ -140,6 +127,37 @@ class WorldSwitcherPanel extends PluginPanel
 
 		listContainer.revalidate();
 		listContainer.repaint();
+	}
+
+	private int getCompareValueStreamOrder(WorldTableRow r1, WorldTableRow r2) {
+		int order = !ascendingOrder ? 1 : -1;
+		if (r1.getWorldData().getStream_order().equals("gggbbb"))
+		{
+			if (r2.getWorldData().getStream_order().equals("gggbbb"))
+			{
+				return 0;
+			}
+			else
+			{
+				return -1 * order;
+			}
+		}
+		if (r1.getWorldData().getStream_order().equals("bbbggg"))
+		{
+			if (r2.getWorldData().getStream_order().equals("gggbbb"))
+			{
+				return 1 * order;
+			}
+			else if (r2.getWorldData().getStream_order().equals("bbbggg"))
+			{
+				return 0;
+			}
+			else
+			{
+				return -1 * order;
+			}
+		}
+		return r1.getWorldData().getWorld_number() - r2.getWorldData().getWorld_number();
 	}
 
 	private int getCompareValue(WorldTableRow row1, WorldTableRow row2, Function<WorldTableRow, Comparable> compareByFn)

@@ -58,7 +58,8 @@ class WorldTableRow extends JPanel
 	private static final Color FREE_WORLD = new Color(200, 200, 200);
 	private static final Color SEASONAL_WORLD = new Color(133, 177, 178);
 	private static final Color GGGBBB_WORLD = new Color(36, 195, 250);
-	private static final Color BBBGGG_WORLD = new Color(187, 113, 255);
+	private static final Color BBBGGG_WORLD = new Color(128, 217, 255);
+//	private static final Color BBBGGG_WORLD = new Color(187, 113, 255);
 
 	static
 	{
