@@ -13,21 +13,18 @@ repositories {
 def runeLiteVersion = '1.8.12'
 
 dependencies {
-	implementation 'org.jetbrains:annotations:20.1.0'
-	implementation 'org.jetbrains:annotations:20.1.0'
-	implementation 'org.jetbrains:annotations:20.1.0'
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
 
-	compileOnly 'org.projectlombok:lombok:1.18.22'
-	annotationProcessor 'org.projectlombok:lombok:1.18.22'
+	compileOnly 'org.projectlombok:lombok:1.18.20'
+	annotationProcessor 'org.projectlombok:lombok:1.18.20'
 
-	testImplementation 'junit:junit:4.13.2'
+	testImplementation 'junit:junit:4.12'
 	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
 	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
 }
 
 group = 'com.togcrowdsourcing'
-version = '1.0-SNAPSHOT'
+version = '1.0'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
