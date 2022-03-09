@@ -43,6 +43,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class StreamOrderDetector
@@ -251,8 +252,8 @@ public class StreamOrderDetector
             int currentWorld = client.getWorld();
             String streamOrder = streamListToStringForAPI(streamList);
             WorldData worldData = new WorldData(currentWorld, streamOrder, 1);
-            crowdsourcingManager.submitToAPI(worldData);
-            crowdsourcingManager.makeGetRequest(worldHopper);
+            crowdsourcingManager.submitToAPI(worldData, worldHopper);
+//            crowdsourcingManager.makeGetRequest(worldHopper);
         }
     }
 }

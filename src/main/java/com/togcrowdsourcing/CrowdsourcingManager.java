@@ -49,7 +49,7 @@ public class CrowdsourcingManager
     @Inject
     private Gson gson;
 
-    protected void submitToAPI(WorldData worldData)
+    protected void submitToAPI(WorldData worldData, WorldHopper worldHopper)
     {
         Request r = new Request.Builder()
                 .url(CROWDSOURCING_BASE)
@@ -67,7 +67,7 @@ public class CrowdsourcingManager
             @Override
             public void onResponse(Call call, Response response)
             {
-//                System.out.println(response.body());
+                makeGetRequest(worldHopper);
                 response.close();
             }
 
