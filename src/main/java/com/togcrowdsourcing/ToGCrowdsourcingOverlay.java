@@ -66,6 +66,7 @@ class ToGCrowdsourcingOverlay extends OverlayPanel
 	public Dimension render(Graphics2D graphics)
 	{
 		if (!config.showOverlay()) { return null; }
+		if (streamOrderDetector.getClient().getLocalPlayer().getWorldLocation().getRegionID() != streamOrderDetector.TOG_REGION) return null;
 
 		ArrayList<TearStream> paddedList = padWithNull(streamOrderDetector.getStreamList());
 

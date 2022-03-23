@@ -48,7 +48,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class StreamOrderDetector
 {
-    private static final int TOG_REGION = 12948;
+    public static final int TOG_REGION = 12948;
     private static final int STREAM_SHORT_INTERVAL = 600;
     private static final int STREAM_LONG_INTERVAL = 6600;
     private static final double STREAM_INTERVAL_TOLERANCE = 0.2;
@@ -59,6 +59,7 @@ public class StreamOrderDetector
 
     private Instant lastSpawnInstant = Instant.now();
 
+    @Getter
     @Inject
     private Client client;
 
