@@ -157,6 +157,32 @@ class WorldSwitcherPanel extends PluginPanel
 				return -1 * order;
 			}
 		}
+		if (r2.getWorldData().getStream_order().equals("gggbbb"))
+		{
+			if (r1.getWorldData().getStream_order().equals("gggbbb"))
+			{
+				return 0;
+			}
+			else
+			{
+				return 1 * order;
+			}
+		}
+		if (r2.getWorldData().getStream_order().equals("bbbggg"))
+		{
+			if (r1.getWorldData().getStream_order().equals("gggbbb"))
+			{
+				return -1 * order;
+			}
+			else if (r1.getWorldData().getStream_order().equals("bbbggg"))
+			{
+				return 0;
+			}
+			else
+			{
+				return 1 * order;
+			}
+		}
 		return r1.getWorldData().getWorld_number() - r2.getWorldData().getWorld_number();
 	}
 
@@ -176,11 +202,13 @@ class WorldSwitcherPanel extends PluginPanel
 		rows.clear();
 
 		WorldResult worldResult = worldHopper.getWorldService().getWorlds();
+		if (worldResult == null) { return; }
 
 		for (int i = 0; i < worldDataList.size(); i++)
 		{
 			WorldData worldData = worldDataList.get(i);
 			World world = worldResult.findWorld(worldData.getWorld_number());
+			if (world == null) { return; }
 
 			if (shouldWorldBeSkipped(world, worldData, config)) { continue; }
 
@@ -188,7 +216,6 @@ class WorldSwitcherPanel extends PluginPanel
 
 			rows.add(buildRow(worldData, i % 2 == 0, isCurrentWorld));
 		}
-
 		updateList();
 	}
 

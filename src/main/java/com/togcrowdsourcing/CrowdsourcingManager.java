@@ -80,7 +80,6 @@ public class CrowdsourcingManager
         {
             Request r = new Request.Builder()
                     .url(CROWDSOURCING_BASE)
-//                    .addHeader("Authorization", plugin.getShootingStarsSharedKey())
                     .build();
             okHttpClient.newCall(r).enqueue(new Callback()
             {
@@ -101,7 +100,6 @@ public class CrowdsourcingManager
                             JsonArray j = new Gson().fromJson(response.body().string(), JsonArray.class);
                             worldHopper.setWorldData(parseData(j));
                             worldHopper.setGetError(false);
-//                            System.out.println(worldHopper.getWorldData().toString());
                             worldHopper.updateList();
                         }
                         catch (IOException | JsonSyntaxException e)
