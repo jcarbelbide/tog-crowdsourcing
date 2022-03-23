@@ -247,13 +247,10 @@ public class StreamOrderDetector
 
     private void submitToAPI()
     {
-        synchronized (this)
-        {
-            int currentWorld = client.getWorld();
-            String streamOrder = streamListToStringForAPI(streamList);
-            WorldData worldData = new WorldData(currentWorld, streamOrder, 1);
-            crowdsourcingManager.submitToAPI(worldData, worldHopper);
-//            crowdsourcingManager.makeGetRequest(worldHopper);
-        }
+        int currentWorld = client.getWorld();
+        String streamOrder = streamListToStringForAPI(streamList);
+        WorldData worldData = new WorldData(currentWorld, streamOrder, 1);
+
+        crowdsourcingManager.submitToAPI(worldData, worldHopper);
     }
 }
