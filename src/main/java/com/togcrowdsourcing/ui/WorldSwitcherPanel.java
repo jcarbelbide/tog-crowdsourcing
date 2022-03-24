@@ -184,8 +184,18 @@ class WorldSwitcherPanel extends PluginPanel
 		return r1.getWorldData().getWorld_number() - r2.getWorldData().getWorld_number();
 	}
 
-	private int getCompareHits(WorldTableRow r1, WorldTableRow r2) {
-		return r2.getWorldData().getHits() - r1.getWorldData().getHits();
+	private int getCompareHits(WorldTableRow r1, WorldTableRow r2)
+	{
+		int c = r2.getWorldData().getHits() - r1.getWorldData().getHits();
+
+		if (c == 0)
+		{
+			return r1.getWorldData().getWorld_number() - r2.getWorldData().getWorld_number();
+		}
+		else
+		{
+			return c;
+		}
 	}
 
 	private int getCompareValue(WorldTableRow row1, WorldTableRow row2, Function<WorldTableRow, Comparable> compareByFn)
