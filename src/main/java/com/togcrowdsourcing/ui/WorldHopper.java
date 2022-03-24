@@ -237,7 +237,7 @@ public class WorldHopper
 	 */
 	public void updateList()
 	{
-		if (isGetError()) { return; }
+//		if (isGetError()) { return; }
 		SwingUtilities.invokeLater(() -> panel.populate(worldData, config));
 	}
 

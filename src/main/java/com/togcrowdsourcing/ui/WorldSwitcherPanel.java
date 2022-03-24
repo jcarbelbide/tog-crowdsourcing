@@ -36,11 +36,9 @@ import net.runelite.http.api.worlds.WorldResult;
 import net.runelite.http.api.worlds.WorldType;
 
 import javax.swing.JPanel;
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
-import java.awt.Color;
-import java.awt.GridLayout;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -197,9 +195,33 @@ class WorldSwitcherPanel extends PluginPanel
 		return ordering.compare(compareByFn.apply(row1), compareByFn.apply(row2));
 	}
 
+	void addNoDataMessage()
+	{
+		final GridBagConstraints c = new GridBagConstraints();
+		final String[] messages = new String[]
+		{
+			" ",
+			"    Worlds have reset!",
+			" ",
+			"    Please help to gather data",
+			"    by hopping worlds :)",
+		};
+
+		for (String message : messages)
+		{
+			listContainer.add(new JLabel(message), c);
+		}
+	}
+
 	void populate(List<WorldData> worldDataList, ToGCrowdsourcingConfig config)
 	{
 		rows.clear();
+
+		if (worldDataList.size() == 0)
+		{
+			addNoDataMessage();
+			return;
+		}
 
 		WorldResult worldResult = worldHopper.getWorldService().getWorlds();
 		if (worldResult == null) { return; }
