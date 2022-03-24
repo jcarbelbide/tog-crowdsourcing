@@ -133,7 +133,7 @@ class WorldSwitcherPanel extends PluginPanel
 		{
 			if (r2.getWorldData().getStream_order().equals("gggbbb"))
 			{
-				return 0;
+				return getCompareHits(r1, r2) * order;
 			}
 			else
 			{
@@ -148,7 +148,7 @@ class WorldSwitcherPanel extends PluginPanel
 			}
 			else if (r2.getWorldData().getStream_order().equals("bbbggg"))
 			{
-				return 0;
+				return getCompareHits(r1, r2) * order;
 			}
 			else
 			{
@@ -159,7 +159,7 @@ class WorldSwitcherPanel extends PluginPanel
 		{
 			if (r1.getWorldData().getStream_order().equals("gggbbb"))
 			{
-				return 0;
+				return getCompareHits(r1, r2) * order;
 			}
 			else
 			{
@@ -174,7 +174,7 @@ class WorldSwitcherPanel extends PluginPanel
 			}
 			else if (r1.getWorldData().getStream_order().equals("bbbggg"))
 			{
-				return 0;
+				return getCompareHits(r1, r2) * order;
 			}
 			else
 			{
@@ -182,6 +182,10 @@ class WorldSwitcherPanel extends PluginPanel
 			}
 		}
 		return r1.getWorldData().getWorld_number() - r2.getWorldData().getWorld_number();
+	}
+
+	private int getCompareHits(WorldTableRow r1, WorldTableRow r2) {
+		return r2.getWorldData().getHits() - r1.getWorldData().getHits();
 	}
 
 	private int getCompareValue(WorldTableRow row1, WorldTableRow row2, Function<WorldTableRow, Comparable> compareByFn)
