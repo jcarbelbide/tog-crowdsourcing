@@ -8,6 +8,11 @@ Features:
 - Double click on any world in client UI to quick hop to that world. 
 - Right click UI header to refresh list of worlds. 1 refresh allowed every 60 seconds. 
 <br/>
+
+For non-RuneLite and mobile players, the below website is also available to view the data that has been crowdsourced for the week: 
+https://togcrowdsourcing.com/
+
+<br/>
 Web server code located below:
 
 https://github.com/jcarbelbide/tog-crowdsourcing-server
