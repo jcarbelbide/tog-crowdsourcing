@@ -231,12 +231,39 @@ class WorldSwitcherPanel extends PluginPanel
 		}
 	}
 
+	void addGetErrorMessage()
+	{
+		final GridBagConstraints c = new GridBagConstraints();
+		final String[] messages = new String[]
+				{
+						" ",
+						"    Error getting world data",
+						" ",
+						"    Server may be down,",
+						"    Please try again later.",
+						"    Sorry for the inconvenience!",
+				};
+
+		for (String message : messages)
+		{
+			listContainer.add(new JLabel(message), c);
+		}
+	}
+
 	void populate(List<WorldData> worldDataList, ToGCrowdsourcingConfig config)
 	{
 		rows.clear();
 
+		if (worldHopper.isGetError())
+		{
+			listContainer.removeAll();
+			addGetErrorMessage();
+			return;
+		}
+
 		if (worldDataList.size() == 0)
 		{
+			listContainer.removeAll();
 			addNoDataMessage();
 			return;
 		}

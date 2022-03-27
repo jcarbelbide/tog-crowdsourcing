@@ -37,6 +37,9 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.task.Schedule;
+
+import java.time.temporal.ChronoUnit;
 
 @PluginDescriptor(
 		name = "Tears of Guthix Crowdsourcing",
@@ -44,6 +47,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 )
 public class ToGCrowdsourcingPlugin extends Plugin
 {
+	private static final int REFRESH_INTERVAL_ON_ERROR = 10;
+
 	@Inject
 	private EventBus eventBus;
 
@@ -74,6 +79,23 @@ public class ToGCrowdsourcingPlugin extends Plugin
 
 		eventBus.unregister(worldHopper);
 		worldHopper.shutDownWorldHopper();
+	}
+
+	@Schedule(
+			period = REFRESH_INTERVAL_ON_ERROR,
+			unit = ChronoUnit.SECONDS,
+			asynchronous = true
+	)
+	public void refreshOnError()
+	{
+		if (worldHopper.isGetError())
+		{
+			synchronized (worldHopper)
+			{
+				worldHopper.getCrowdsourcingManager().makeGetRequest(worldHopper);
+				worldHopper.updateList();
+			}
+		}
 	}
 
 	@Provides

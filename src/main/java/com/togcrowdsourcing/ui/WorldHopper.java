@@ -26,7 +26,6 @@
  */
 package com.togcrowdsourcing.ui;
 
-import com.google.common.collect.ImmutableList;
 import com.togcrowdsourcing.CrowdsourcingManager;
 import com.togcrowdsourcing.ToGCrowdsourcingConfig;
 import com.togcrowdsourcing.ToGCrowdsourcingPlugin;
@@ -97,6 +96,7 @@ public class WorldHopper
 	@Inject
 	private WorldService worldService;
 
+	@Getter
 	@Inject
 	private CrowdsourcingManager crowdsourcingManager;
 
@@ -209,7 +209,6 @@ public class WorldHopper
 	// This is the right click refresh menu item
 	void refresh()
 	{
-//		System.out.println("refresh");
 		Instant now = Instant.now();
 		if (lastFetch != null && now.toEpochMilli() - lastFetch.toEpochMilli() < REFRESH_THROTTLE)
 		{

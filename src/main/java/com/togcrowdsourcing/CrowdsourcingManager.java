@@ -87,8 +87,11 @@ public class CrowdsourcingManager
                 @Override
                 public void onFailure(Call call, IOException e)
                 {
-                    log.debug("Error retrieving shooting star data", e);
+                    log.debug("Error retrieving tog crowdsourcing data", e);
+
                     worldHopper.setGetError(true);
+
+                    worldHopper.updateList();
                 }
 
                 @Override
@@ -98,21 +101,19 @@ public class CrowdsourcingManager
                     {
                         try
                         {
+                            worldHopper.setGetError(false);
                             JsonArray j = new Gson().fromJson(response.body().string(), JsonArray.class);
                             worldHopper.setWorldData(parseData(j));
-                            worldHopper.setGetError(false);
                             worldHopper.updateList();
                         }
                         catch (IOException | JsonSyntaxException e)
                         {
-                            worldHopper.setGetError(true);
                             log.error(e.getMessage());
                         }
                     }
                     else
                     {
                         log.error("Get request unsuccessful");
-                        worldHopper.setGetError(true);
                     }
                 }
             });
