@@ -21,3 +21,5 @@ https://github.com/jcarbelbide/tog-crowdsourcing-server
 UI Example shown below: 
 
 ![alt text](https://github.com/jcarbelbide/tog-crowdsourcing/blob/master/UI_Example.PNG?raw=true)
+
+For a technical write up of the project, please visit [this](https://github.com/jcarbelbide/togcrowdsourcing.com) repo.
