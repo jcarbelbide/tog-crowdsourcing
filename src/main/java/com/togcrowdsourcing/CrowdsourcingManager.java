@@ -102,7 +102,7 @@ public class CrowdsourcingManager
                         try
                         {
                             worldHopper.setGetError(false);
-                            JsonArray j = new Gson().fromJson(response.body().string(), JsonArray.class);
+                            JsonArray j = gson.newBuilder().create().fromJson(response.body().string(), JsonArray.class);
                             worldHopper.setWorldData(parseData(j));
                             worldHopper.updateList();
                         }
