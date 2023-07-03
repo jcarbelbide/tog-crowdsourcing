@@ -50,6 +50,7 @@ class WorldTableRow extends JPanel
 
 	private static final int WORLD_COLUMN_WIDTH = WorldSwitcherPanel.getWORLD_COLUMN_WIDTH();
 	private static final int HITS_COLUMN_WIDTH = WorldSwitcherPanel.getHITS_COLUMN_WIDTH();
+	private static final int PING_COLUMN_WIDTH = 35;
 
 	private static final Color CURRENT_WORLD = new Color(66, 227, 17);
 	private static final Color DANGEROUS_WORLD = new Color(251, 62, 62);
@@ -60,6 +61,10 @@ class WorldTableRow extends JPanel
 	private static final Color GGGBBB_WORLD = new Color(36, 195, 250);
 	private static final Color BBBGGG_WORLD = new Color(128, 217, 255);
 //	private static final Color BBBGGG_WORLD = new Color(187, 113, 255);
+
+	private static final Color GOOD_PING = new Color(77, 243, 77, 255);
+	private static final Color MEDIUM_PING = new Color(222, 245, 98, 255);
+	private static final Color BAD_PING = new Color(203, 73, 73, 255);
 
 	static
 	{
@@ -72,6 +77,8 @@ class WorldTableRow extends JPanel
 	private JLabel worldField;
 	private JLabel hitsField;
 	private JLabel streamOrderField;
+	private JLabel pingField;
+
 
 	@Getter
 	private final World world;
@@ -82,9 +89,11 @@ class WorldTableRow extends JPanel
 	@Getter(AccessLevel.PACKAGE)
 	private int updatedHitsCount;
 
+	private int ping;
+
 	private Color lastBackground;
 
-	WorldTableRow(World world, WorldData worldData, boolean current, Consumer<World> onSelect)
+	WorldTableRow(World world, WorldData worldData, boolean current, Integer ping, Consumer<World> onSelect)
 	{
 		this.world = world;
 		this.worldData = worldData;
@@ -153,6 +162,10 @@ class WorldTableRow extends JPanel
 		worldField.setPreferredSize(new Dimension(WORLD_COLUMN_WIDTH, 0));
 		worldField.setOpaque(false);
 
+		JPanel pingField = buildPingField(ping);
+		pingField.setPreferredSize(new Dimension(PING_COLUMN_WIDTH, 0));
+		pingField.setOpaque(false);
+
 		JPanel hitsField = buildHitsField();
 		hitsField.setPreferredSize(new Dimension(HITS_COLUMN_WIDTH, 0));
 		hitsField.setOpaque(false);
@@ -166,6 +179,7 @@ class WorldTableRow extends JPanel
 		leftSide.add(worldField, BorderLayout.WEST);
 		leftSide.add(hitsField, BorderLayout.CENTER);
 		rightSide.add(activityField, BorderLayout.CENTER);
+		rightSide.add(pingField, BorderLayout.EAST);
 
 		add(leftSide, BorderLayout.WEST);
 		add(rightSide, BorderLayout.CENTER);
@@ -174,6 +188,19 @@ class WorldTableRow extends JPanel
 	private static String hitsCountString(int hitsCount)
 	{
 		return hitsCount < 0 ? "OFF" : Integer.toString(hitsCount);
+	}
+
+	public void recolourPingColumn(int ping)
+	{
+		if (ping != -1 && ping < 70) {
+			pingField.setForeground(GOOD_PING);
+		}
+		else if (getPing() >= 70 && getPing() < 150) {
+			pingField.setForeground(MEDIUM_PING);
+		}
+		else if (getPing() >= 150) {
+			pingField.setForeground(BAD_PING);
+		}
 	}
 
 	public void recolour(boolean current)
@@ -214,6 +241,27 @@ class WorldTableRow extends JPanel
 		}
 
 		worldField.setForeground(world.getTypes().contains(WorldType.MEMBERS) ? MEMBERS_WORLD : FREE_WORLD);
+	}
+
+	void setPing(int ping)
+	{
+		this.ping = ping;
+		pingField.setText(ping <= 0 ? "-" : Integer.toString(ping));
+	}
+
+	void hidePing()
+	{
+		pingField.setText("-");
+	}
+
+	void showPing()
+	{
+		setPing(ping); // to update pingField
+	}
+
+	int getPing()
+	{
+		return ping;
 	}
 
 	/**
@@ -327,5 +375,23 @@ class WorldTableRow extends JPanel
 			default:
 				return null;
 		}
+	}
+
+	private JPanel buildPingField(Integer ping)
+	{
+		JPanel column = new JPanel(new BorderLayout());
+		column.setBorder(new EmptyBorder(0, 5, 0, 5));
+
+		pingField = new JLabel("-");
+		pingField.setFont(FontManager.getRunescapeSmallFont());
+
+		column.add(pingField, BorderLayout.EAST);
+
+		if (ping != null)
+		{
+			setPing(ping);
+		}
+
+		return column;
 	}
 }
