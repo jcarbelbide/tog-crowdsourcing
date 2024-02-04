@@ -34,10 +34,12 @@ import net.runelite.client.ui.PluginPanel;
 import net.runelite.http.api.worlds.World;
 import net.runelite.http.api.worlds.WorldResult;
 import net.runelite.http.api.worlds.WorldType;
+import net.runelite.api.EnumComposition;
 
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import javax.annotation.Nullable;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.BorderLayout;
@@ -250,7 +252,7 @@ class WorldSwitcherPanel extends PluginPanel
 		}
 	}
 
-	void populate(List<WorldData> worldDataList, ToGCrowdsourcingConfig config)
+	void populate(List<WorldData> worldDataList, ToGCrowdsourcingConfig config, @Nullable EnumComposition worldLocations)
 	{
 		rows.clear();
 
@@ -281,7 +283,12 @@ class WorldSwitcherPanel extends PluginPanel
 
 			boolean isCurrentWorld = worldData.getWorld_number() == worldHopper.getCurrentWorld() && worldHopper.getLastWorld() != 0;
 
-			rows.add(buildRow(worldData, i % 2 == 0, isCurrentWorld));
+			rows.add(buildRow(
+					worldData,
+					i % 2 == 0,
+					isCurrentWorld,
+					worldLocations != null ? worldLocations.getIntValue(world.getId()) : -1)
+			);
 		}
 		updateList();
 	}
@@ -394,12 +401,13 @@ class WorldSwitcherPanel extends PluginPanel
 	/**
 	 * Builds a table row, that displays the world's information.
 	 */
-	private WorldTableRow buildRow(WorldData worldData, boolean stripe, boolean current)
+	private WorldTableRow buildRow(WorldData worldData, boolean stripe, boolean current, int worldLocation)
 	{
 		World world = worldHopper.getWorldService().getWorlds().findWorld(worldData.getWorld_number());
 		WorldTableRow row = new WorldTableRow(
 				world, worldData, current,
-			worldHopper::hopTo
+			worldHopper::hopTo,
+			worldLocation
 		);
 		row.setBackground(stripe ? ODD_ROW : ColorScheme.DARK_GRAY_COLOR);
 		return row;

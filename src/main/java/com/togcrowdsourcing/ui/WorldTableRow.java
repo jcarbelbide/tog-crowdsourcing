@@ -46,6 +46,8 @@ class WorldTableRow extends JPanel
 	private static final ImageIcon FLAG_AUS;
 	private static final ImageIcon FLAG_UK;
 	private static final ImageIcon FLAG_US;
+	private static final ImageIcon FLAG_US_EAST;
+	private static final ImageIcon FLAG_US_WEST;
 	private static final ImageIcon FLAG_GER;
 
 	private static final int WORLD_COLUMN_WIDTH = WorldSwitcherPanel.getWORLD_COLUMN_WIDTH();
@@ -66,12 +68,18 @@ class WorldTableRow extends JPanel
 		FLAG_AUS = new ImageIcon(ImageUtil.loadImageResource(WorldHopperPlugin.class, "flag_aus.png"));
 		FLAG_UK = new ImageIcon(ImageUtil.loadImageResource(WorldHopperPlugin.class, "flag_uk.png"));
 		FLAG_US = new ImageIcon(ImageUtil.loadImageResource(WorldHopperPlugin.class, "flag_us.png"));
+		FLAG_US_EAST = new ImageIcon(ImageUtil.loadImageResource(WorldHopperPlugin.class, "flag_us_east.png"));
+		FLAG_US_WEST = new ImageIcon(ImageUtil.loadImageResource(WorldHopperPlugin.class, "flag_us_west.png"));
 		FLAG_GER = new ImageIcon(ImageUtil.loadImageResource(WorldHopperPlugin.class, "flag_ger.png"));
 	}
+
+	private static final int LOCATION_US_WEST = -73;
+	private static final int LOCATION_US_EAST = -42;
 
 	private JLabel worldField;
 	private JLabel hitsField;
 	private JLabel streamOrderField;
+	private final int worldLocation; // from enum WORLD_LOCATIONS
 
 	@Getter
 	private final World world;
@@ -84,11 +92,12 @@ class WorldTableRow extends JPanel
 
 	private Color lastBackground;
 
-	WorldTableRow(World world, WorldData worldData, boolean current, Consumer<World> onSelect)
+	WorldTableRow(World world, WorldData worldData, boolean current, Consumer<World> onSelect, int worldLocation)
 	{
 		this.world = world;
 		this.worldData = worldData;
 		this.updatedHitsCount = worldData.getHits();
+		this.worldLocation = worldLocation;
 
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(2, 0, 2, 0));
@@ -296,7 +305,7 @@ class WorldTableRow extends JPanel
 
 		worldField = new JLabel(world.getId() + "");
 
-		ImageIcon flagIcon = getFlag(world.getRegion());
+		ImageIcon flagIcon = getFlag(world.getRegion(), worldLocation);
 		if (flagIcon != null)
 		{
 			JLabel flag = new JLabel(flagIcon);
@@ -307,7 +316,7 @@ class WorldTableRow extends JPanel
 		return column;
 	}
 
-	private static ImageIcon getFlag(WorldRegion region)
+	private static ImageIcon getFlag(WorldRegion region, int worldLocation)
 	{
 		if (region == null)
 		{
@@ -317,7 +326,15 @@ class WorldTableRow extends JPanel
 		switch (region)
 		{
 			case UNITED_STATES_OF_AMERICA:
-				return FLAG_US;
+				switch (worldLocation)
+				{
+					case LOCATION_US_WEST:
+						return FLAG_US_WEST;
+					case LOCATION_US_EAST:
+						return FLAG_US_EAST;
+					default:
+						return FLAG_US;
+				}
 			case UNITED_KINGDOM:
 				return FLAG_UK;
 			case AUSTRALIA:
