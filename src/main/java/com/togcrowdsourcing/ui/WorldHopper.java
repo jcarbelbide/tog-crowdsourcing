@@ -53,6 +53,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.*;
 import net.runelite.http.api.worlds.World;
 import net.runelite.http.api.worlds.WorldResult;
+import net.runelite.api.EnumID;
 
 import javax.inject.Inject;
 import javax.swing.*;
@@ -236,8 +237,12 @@ public class WorldHopper
 	 */
 	public void updateList()
 	{
-//		if (isGetError()) { return; }
-		SwingUtilities.invokeLater(() -> panel.populate(worldData, config));
+//		SwingUtilities.invokeLater(() -> panel.populate(worldData, config));
+		clientThread.invokeLater(() ->
+		{
+			EnumComposition locationEnum = client.getGameState().getState() >= GameState.LOGIN_SCREEN.getState() ? client.getEnum(EnumID.WORLD_LOCATIONS) : null;
+			SwingUtilities.invokeLater(() -> panel.populate(worldData, config, locationEnum));
+		});
 	}
 
 	private void hop(int worldId)
