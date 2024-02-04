@@ -54,19 +54,16 @@ class WorldSwitcherPanel extends PluginPanel
 	private static final Color ODD_ROW = new Color(44, 44, 44);
 
 	@Getter
-	private static final int WORLD_COLUMN_WIDTH = 58;
+	private static final int WORLD_COLUMN_WIDTH = 60;
 
 	@Getter
-	private static final int HITS_COLUMN_WIDTH = 43;
-
-	private static final int PING_COLUMN_WIDTH = 44;
+	private static final int HITS_COLUMN_WIDTH = 50;
 
 	private final JPanel listContainer = new JPanel();
 
 	private WorldTableHeader worldHeader;
 	private WorldTableHeader hitsHeader;
 	private WorldTableHeader activityHeader;
-	private WorldTableHeader pingHeader;
 
 	private WorldOrder orderIndex = WorldOrder.STREAM_ORDER;
 	private boolean ascendingOrder = false;
@@ -104,62 +101,12 @@ class WorldSwitcherPanel extends PluginPanel
 		}
 	}
 
-	void updatePing(int world, int ping)
-	{
-		for (WorldTableRow worldTableRow : rows)
-		{
-			if (worldTableRow.getWorld().getId() == world)
-			{
-				worldTableRow.setPing(ping);
-
-				// If the panel is sorted by ping, re-sort it
-				if (orderIndex == WorldOrder.PING)
-				{
-					updateList();
-				}
-
-				worldTableRow.recolourPingColumn(ping);
-
-				// Only update on the gggbbb or bbbggg (the worlds people care about + the only rows the sort operates over)
-				// because otherwise, it causes a lot of updates. Doubt it affects performance, but why not.
-				if (worldTableRow.getWorldData().getStream_order().equals("gggbbb") || worldTableRow.getWorldData().getStream_order().equals("bbbggg")) {
-					updateList();
-				}
-
-				break;
-			}
-		}
-	}
-
-	void hidePing()
-	{
-		for (WorldTableRow worldTableRow : rows)
-		{
-			worldTableRow.hidePing();
-		}
-	}
-
-	void showPing()
-	{
-		for (WorldTableRow worldTableRow : rows)
-		{
-			worldTableRow.showPing();
-		}
-	}
-
 	void updateList()
 	{
 		rows.sort((r1, r2) ->
 		{
 			switch (orderIndex)
 			{
-				case PING:
-					// Leave worlds with unknown ping at the bottom
-					return getCompareValue(r1, r2, row ->
-					{
-						int ping = row.getPing();
-						return ping > 0 ? ping : null;
-					});
 				case WORLD:
 					return getCompareValue(r1, r2, row -> row.getWorld().getId());
 				case HITS:
@@ -190,7 +137,7 @@ class WorldSwitcherPanel extends PluginPanel
 		{
 			if (r2.getWorldData().getStream_order().equals("gggbbb"))
 			{
-				return getComparePing(r1, r2) * order;
+				return getCompareHits(r1, r2) * order;
 			}
 			else
 			{
@@ -205,7 +152,7 @@ class WorldSwitcherPanel extends PluginPanel
 			}
 			else if (r2.getWorldData().getStream_order().equals("bbbggg"))
 			{
-				return getComparePing(r1, r2) * order;
+				return getCompareHits(r1, r2) * order;
 			}
 			else
 			{
@@ -216,7 +163,7 @@ class WorldSwitcherPanel extends PluginPanel
 		{
 			if (r1.getWorldData().getStream_order().equals("gggbbb"))
 			{
-				return getComparePing(r1, r2) * order;
+				return getCompareHits(r1, r2) * order;
 			}
 			else
 			{
@@ -231,7 +178,7 @@ class WorldSwitcherPanel extends PluginPanel
 			}
 			else if (r1.getWorldData().getStream_order().equals("bbbggg"))
 			{
-				return getComparePing(r1, r2) * order;
+				return getCompareHits(r1, r2) * order;
 			}
 			else
 			{
@@ -241,50 +188,17 @@ class WorldSwitcherPanel extends PluginPanel
 		return r1.getWorldData().getWorld_number() - r2.getWorldData().getWorld_number();
 	}
 
-	private int getCompareWorldNumber(WorldTableRow r1, WorldTableRow r2)
-	{
-		return r1.getWorldData().getWorld_number() - r2.getWorldData().getWorld_number();
-	}
-
 	private int getCompareHits(WorldTableRow r1, WorldTableRow r2)
 	{
-		// Sort hits DESC
-		int hitsCompare = r2.getWorldData().getHits() - r1.getWorldData().getHits();
+		int c = r2.getWorldData().getHits() - r1.getWorldData().getHits();
 
-		if (hitsCompare == 0)
+		if (c == 0)
 		{
-			return getCompareWorldNumber(r1, r2);
+			return r1.getWorldData().getWorld_number() - r2.getWorldData().getWorld_number();
 		}
 		else
 		{
-			return hitsCompare;
-		}
-	}
-
-	private int getComparePing(WorldTableRow r1, WorldTableRow r2)
-	{
-		// sort ping ASC
-		int pingCompare = r1.getPing() - r2.getPing();
-
-		if (r1.getPing() > 0 && r2.getPing() <= 0)		// r1 good, r2 bad
-		{
-			return -1;
-		}
-		else if (r1.getPing() <= 0 && r2.getPing() > 0)	// r1 bad, r2 good
-		{
-			return 1;
-		}
-		else if (r1.getPing() <= 0 && r2.getPing() <= 0) // both bad
-		{
-			return getCompareHits(r1, r2);
-		}
-		else if (pingCompare == 0)						// equal pings
-		{
-			return getCompareHits(r1, r2);
-		}
-		else
-		{
-			return pingCompare;
+			return c;
 		}
 	}
 
@@ -389,16 +303,12 @@ class WorldSwitcherPanel extends PluginPanel
 
 	private void orderBy(WorldOrder order)
 	{
-		pingHeader.highlight(false, ascendingOrder);
 		worldHeader.highlight(false, ascendingOrder);
 		hitsHeader.highlight(false, ascendingOrder);
 		activityHeader.highlight(false, ascendingOrder);
 
 		switch (order)
 		{
-			case PING:
-				pingHeader.highlight(true, ascendingOrder);
-				break;
 			case WORLD:
 				worldHeader.highlight(true, ascendingOrder);
 				break;
@@ -422,22 +332,6 @@ class WorldSwitcherPanel extends PluginPanel
 		JPanel header = new JPanel(new BorderLayout());
 		JPanel leftSide = new JPanel(new BorderLayout());
 		JPanel rightSide = new JPanel(new BorderLayout());
-
-		pingHeader = new WorldTableHeader("Ping", orderIndex == WorldOrder.PING, ascendingOrder, worldHopper::refresh);
-		pingHeader.setPreferredSize(new Dimension(PING_COLUMN_WIDTH, 0));
-		pingHeader.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent mouseEvent)
-			{
-				if (SwingUtilities.isRightMouseButton(mouseEvent))
-				{
-					return;
-				}
-				ascendingOrder = orderIndex != WorldOrder.PING || !ascendingOrder;
-				orderBy(WorldOrder.PING);
-			}
-		});
 
 		worldHeader = new WorldTableHeader("World", orderIndex == WorldOrder.WORLD, ascendingOrder, worldHopper::refresh);
 		worldHeader.setPreferredSize(new Dimension(WORLD_COLUMN_WIDTH, 0));
@@ -490,7 +384,6 @@ class WorldSwitcherPanel extends PluginPanel
 		leftSide.add(hitsHeader, BorderLayout.CENTER);
 
 		rightSide.add(activityHeader, BorderLayout.CENTER);
-		rightSide.add(pingHeader, BorderLayout.EAST);
 
 		header.add(leftSide, BorderLayout.WEST);
 		header.add(rightSide, BorderLayout.CENTER);
@@ -505,7 +398,7 @@ class WorldSwitcherPanel extends PluginPanel
 	{
 		World world = worldHopper.getWorldService().getWorlds().findWorld(worldData.getWorld_number());
 		WorldTableRow row = new WorldTableRow(
-				world, worldData, current, worldHopper.getStoredPing(world),
+				world, worldData, current,
 			worldHopper::hopTo
 		);
 		row.setBackground(stripe ? ODD_ROW : ColorScheme.DARK_GRAY_COLOR);
@@ -519,7 +412,6 @@ class WorldSwitcherPanel extends PluginPanel
 	{
 		WORLD,
 		HITS,
-		STREAM_ORDER,
-		PING
+		STREAM_ORDER
 	}
 }

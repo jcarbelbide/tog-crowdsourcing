@@ -103,26 +103,4 @@ public interface ToGCrowdsourcingConfig extends Config
 	{
 		return true;
 	}
-
-	@ConfigItem(
-			keyName = "ping",
-			name = "Show world ping",
-			description = "Shows ping to each game world",
-			position = 7
-	)
-	default boolean ping()
-	{
-		return true;
-	}
-
-	@ConfigItem(
-			keyName = "displayPing",
-			name = "Display current ping",
-			description = "Displays ping to current game world",
-			position = 8
-	)
-	default boolean displayPing()
-	{
-		return false;
-	}
 }
