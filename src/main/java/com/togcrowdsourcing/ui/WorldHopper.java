@@ -26,12 +26,10 @@
  */
 package com.togcrowdsourcing.ui;
 
-import com.google.common.base.Stopwatch;
 import com.togcrowdsourcing.CrowdsourcingManager;
 import com.togcrowdsourcing.ToGCrowdsourcingConfig;
 import com.togcrowdsourcing.ToGCrowdsourcingPlugin;
 import com.togcrowdsourcing.WorldData;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +47,6 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.WorldsFetch;
 import net.runelite.client.game.WorldService;
 import net.runelite.client.input.KeyManager;
-import com.togcrowdsourcing.ping.Ping;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -62,10 +59,7 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class WorldHopper
@@ -98,9 +92,6 @@ public class WorldHopper
 	@Inject
 	private OverlayManager overlayManager;
 
-	@Inject
-	private WorldHopperPingOverlay worldHopperOverlay;
-
 	@Getter
 	@Inject
 	private WorldService worldService;
@@ -120,7 +111,6 @@ public class WorldHopper
 	@Getter
 	private int lastWorld;
 
-	private ScheduledFuture<?> pingFuture, currPingFuture;
 	private int currentWorld;
 	private Instant lastFetch;
 
@@ -138,15 +128,8 @@ public class WorldHopper
 
 	}
 
-	@Getter(AccessLevel.PACKAGE)
-	private int currentPing;
-
-	private final Map<Integer, Integer> storedPings = new HashMap<>();
-
 	public void startUpWorldHopper(ToGCrowdsourcingConfig config)
 	{
-		currentPing = -1;
-
 		panel = new WorldSwitcherPanel(this);
 		this.config = config;
 
@@ -163,15 +146,6 @@ public class WorldHopper
 			clientToolbar.addNavigation(navButton);
 		}
 
-		// The plugin has its own executor for pings, as it blocks for a long time
-		hopperExecutorService = new ExecutorServiceExceptionLogger(Executors.newSingleThreadScheduledExecutor());
-		// Run the first-run ping
-		hopperExecutorService.execute(this::pingInitialWorlds);
-
-		// Give some initial delay - this won't run until after pingInitialWorlds finishes from tick() anyway
-		pingFuture = hopperExecutorService.scheduleWithFixedDelay(this::pingNextWorld, 15, 3, TimeUnit.SECONDS);
-		currPingFuture = hopperExecutorService.scheduleWithFixedDelay(this::pingCurrentWorld, 15, 1, TimeUnit.SECONDS);
-
 		// populate initial world list
 		updateList();
 
@@ -180,13 +154,8 @@ public class WorldHopper
 
 	public void shutDownWorldHopper()
 	{
-		pingFuture.cancel(true);
-		pingFuture = null;
-
-		currPingFuture.cancel(true);
-		currPingFuture = null;
-
 		clientToolbar.removeNavigation(navButton);
+
 	}
 
 	@Subscribe
@@ -204,16 +173,6 @@ public class WorldHopper
 					else
 					{
 						clientToolbar.removeNavigation(navButton);
-					}
-					break;
-				case "ping":
-					if (config.ping())
-					{
-						SwingUtilities.invokeLater(() -> panel.showPing());
-					}
-					else
-					{
-						SwingUtilities.invokeLater(() -> panel.hidePing());
 					}
 					break;
 			}
@@ -389,103 +348,4 @@ public class WorldHopper
 		quickHopTargetWorld = null;
 	}
 
-	private void pingInitialWorlds()
-	{
-		WorldResult worldResult = worldService.getWorlds();
-		if (worldResult == null || !config.showSidebar() || !config.ping())
-		{
-			return;
-		}
-
-		Stopwatch stopwatch = Stopwatch.createStarted();
-
-		for (World world : worldResult.getWorlds())
-		{
-			int ping = ping(world);
-			SwingUtilities.invokeLater(() -> panel.updatePing(world.getId(), ping));
-		}
-
-		stopwatch.stop();
-
-		log.debug("Done pinging worlds in {}", stopwatch.elapsed());
-	}
-
-	/**
-	 * Ping the next world
-	 */
-	private void pingNextWorld()
-	{
-		WorldResult worldResult = worldService.getWorlds();
-		if (worldResult == null || !config.showSidebar() || !config.ping())
-		{
-			return;
-		}
-
-		List<World> worlds = worldResult.getWorlds();
-		if (worlds.isEmpty())
-		{
-			return;
-		}
-
-		if (currentWorld >= worlds.size())
-		{
-			// Wrap back around
-			currentWorld = 0;
-		}
-
-		World world = worlds.get(currentWorld++);
-
-		// If we are displaying the ping overlay, there is a separate scheduled task for the current world
-		boolean displayPing = config.displayPing() && client.getGameState() == GameState.LOGGED_IN;
-		if (displayPing && client.getWorld() == world.getId())
-		{
-			return;
-		}
-
-		int ping = ping(world);
-		log.trace("Ping for world {} is: {}", world.getId(), ping);
-		SwingUtilities.invokeLater(() -> panel.updatePing(world.getId(), ping));
-	}
-
-	/**
-	 * Ping the current world for the ping overlay
-	 */
-	private void pingCurrentWorld()
-	{
-		WorldResult worldResult = worldService.getWorlds();
-		// There is no reason to ping the current world if not logged in, as the overlay doesn't draw
-		if (worldResult == null || !config.displayPing() || client.getGameState() != GameState.LOGGED_IN)
-		{
-			return;
-		}
-
-		final World currentWorld = worldResult.findWorld(client.getWorld());
-		if (currentWorld == null)
-		{
-			log.debug("unable to find current world: {}", client.getWorld());
-			return;
-		}
-
-		currentPing = ping(currentWorld);
-		log.trace("Ping for current world is: {}", currentPing);
-
-		SwingUtilities.invokeLater(() -> panel.updatePing(currentWorld.getId(), currentPing));
-	}
-
-	Integer getStoredPing(World world)
-	{
-		if (!config.ping())
-		{
-			return null;
-		}
-
-		return storedPings.get(world.getId());
-	}
-
-	private int ping(World world)
-	{
-		int ping = Ping.ping(world);
-		storedPings.put(world.getId(), ping);
-		return ping;
-	}
 }
