@@ -93,7 +93,6 @@ public class ToGCrowdsourcingPlugin extends Plugin
 	public void refreshOnError()
 	{
 		if (!worldHopper.isGetError()) {
-			System.out.print("\nno error, not refreshing");
 			numFailedCallsToAPI = 0;
 			return;
 		}
@@ -103,8 +102,6 @@ public class ToGCrowdsourcingPlugin extends Plugin
 		if (!shouldRetry()) {
 			return;
 		}
-
-		System.out.printf("\nretrying - numFailedCallsToAPI: %s", numFailedCallsToAPI);
 
 		synchronized (worldHopper)
 		{
@@ -123,17 +120,13 @@ public class ToGCrowdsourcingPlugin extends Plugin
 
 		// If the number of current retries is in the whitelist, we should retry.
 		if (retryIntervalWhitelist.contains(numFailedCallsToAPI)) {
-			System.out.print("\nnum failed calls is in white list, retrying");
 			return true;
 		}
 
 		// Cap out retry interval to the greatest one defined
 		if (numFailedCallsToAPI % maxRetryInterval == 0) {
-			System.out.print("\nnum failed calls has reached max, retrying");
 			return true;
 		}
-
-		System.out.printf("\nshould not retry - numFailedCallsToAPI: %s, maxRetryInterval: %s, modulo: %b", numFailedCallsToAPI, maxRetryInterval, numFailedCallsToAPI % maxRetryInterval == 0);
 
 		return false;
 	}
