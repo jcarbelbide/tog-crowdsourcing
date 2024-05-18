@@ -40,6 +40,9 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
 
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 @PluginDescriptor(
 		name = "Tears of Guthix Crowdsourcing",
@@ -48,6 +51,7 @@ import java.time.temporal.ChronoUnit;
 public class ToGCrowdsourcingPlugin extends Plugin
 {
 	private static final int REFRESH_INTERVAL_ON_ERROR = 10;
+	private int numFailedCallsToAPI = 0;
 
 	@Inject
 	private EventBus eventBus;
@@ -88,14 +92,50 @@ public class ToGCrowdsourcingPlugin extends Plugin
 	)
 	public void refreshOnError()
 	{
-		if (worldHopper.isGetError())
-		{
-			synchronized (worldHopper)
-			{
-				worldHopper.getCrowdsourcingManager().makeGetRequest(worldHopper);
-				worldHopper.updateList();
-			}
+		if (!worldHopper.isGetError()) {
+			System.out.print("\nno error, not refreshing");
+			numFailedCallsToAPI = 0;
+			return;
 		}
+
+		numFailedCallsToAPI++;
+
+		if (!shouldRetry()) {
+			return;
+		}
+
+		System.out.printf("\nretrying - numFailedCallsToAPI: %s", numFailedCallsToAPI);
+
+		synchronized (worldHopper)
+		{
+			worldHopper.getCrowdsourcingManager().makeGetRequest(worldHopper);
+			worldHopper.updateList();
+		}
+	}
+
+	private boolean shouldRetry()
+	{
+		// Seconds passed between failed calls is numFailedCallsToAPI * 10
+		// we can attempt to retry at the following intervals:
+		// 10, 20, 30, 60, 120, 300, 300, 300, ..., 300
+		ArrayList<Integer> retryIntervalWhitelist = new ArrayList<>(Arrays.asList(0, 1, 2, 3, 6, 12, 30));
+		int maxRetryInterval = Collections.max(retryIntervalWhitelist);
+
+		// If the number of current retries is in the whitelist, we should retry.
+		if (retryIntervalWhitelist.contains(numFailedCallsToAPI)) {
+			System.out.print("\nnum failed calls is in white list, retrying");
+			return true;
+		}
+
+		// Cap out retry interval to the greatest one defined
+		if (numFailedCallsToAPI % maxRetryInterval == 0) {
+			System.out.print("\nnum failed calls has reached max, retrying");
+			return true;
+		}
+
+		System.out.printf("\nshould not retry - numFailedCallsToAPI: %s, maxRetryInterval: %s, modulo: %b", numFailedCallsToAPI, maxRetryInterval, numFailedCallsToAPI % maxRetryInterval == 0);
+
+		return false;
 	}
 
 	@Provides

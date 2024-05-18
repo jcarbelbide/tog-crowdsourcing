@@ -40,8 +40,8 @@ import java.util.ArrayList;
 @Singleton
 public class CrowdsourcingManager
 {
-    private static final String CROWDSOURCING_BASE = "https://togcrowdsourcing.com/worldinfo";
-//    private static final String CROWDSOURCING_BASE = "http://127.0.0.1:8080/worldinfo";           // For debug
+//    private static final String CROWDSOURCING_BASE = "https://togcrowdsourcing.com/worldinfo";
+    private static final String CROWDSOURCING_BASE = "http://127.0.0.1:8080/worldinfo";           // For debug
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     @Inject

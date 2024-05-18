@@ -243,7 +243,16 @@ class WorldSwitcherPanel extends PluginPanel
 						" ",
 						"    Server may be down,",
 						"    Please try again later.",
-						"    Sorry for the inconvenience!",
+						"    Really sorry for the inconvenience :(",
+						" ",
+						" ",
+						" ",
+						"    If this continues, please consider",
+						"    posting an issue on the github repo",
+						"    and I will try to resolve this asap:",
+						" ",
+						"    https://github.com/jcarbelbide",
+						"    /tog-crowdsourcing-server/issues",
 				};
 
 		for (String message : messages)
