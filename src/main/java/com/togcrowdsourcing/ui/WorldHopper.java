@@ -35,7 +35,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.*;
-import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.widgets.ComponentID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
@@ -302,7 +302,7 @@ public class WorldHopper
 			return;
 		}
 
-		if (client.getWidget(WidgetInfo.WORLD_SWITCHER_LIST) == null)
+		if (client.getWidget(ComponentID.WORLD_SWITCHER_WORLD_LIST) == null)
 		{
 			client.openWorldHopper();
 
