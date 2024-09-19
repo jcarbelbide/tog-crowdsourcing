@@ -220,11 +220,18 @@ class WorldSwitcherPanel extends PluginPanel
 		final GridBagConstraints c = new GridBagConstraints();
 		final String[] messages = new String[]
 		{
+//			" ",
+//			"    Worlds have reset!",
+//			" ",
+//			"    Please help to gather data",
+//			"    by hopping worlds :)",
 			" ",
-			"    Worlds have reset!",
-			" ",
-			"    Please help to gather data",
-			"    by hopping worlds :)",
+			"    There is currently an issue",
+			"    displaying worlds in the plugin.",
+			"    We are currently looking into a",
+			"    fix, but for now, please visit",
+			"    https://togcrowdsourcing.com/",
+			"    for a list of current worlds."
 		};
 
 		for (String message : messages)
