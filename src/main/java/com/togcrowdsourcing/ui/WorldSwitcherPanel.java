@@ -220,18 +220,11 @@ class WorldSwitcherPanel extends PluginPanel
 		final GridBagConstraints c = new GridBagConstraints();
 		final String[] messages = new String[]
 		{
-//			" ",
-//			"    Worlds have reset!",
-//			" ",
-//			"    Please help to gather data",
-//			"    by hopping worlds :)",
 			" ",
-			"    There is currently an issue",
-			"    displaying worlds in the plugin.",
-			"    We are currently looking into a",
-			"    fix, but for now, please visit",
-			"    https://togcrowdsourcing.com/",
-			"    for a list of current worlds."
+			"    Worlds have reset!",
+			" ",
+			"    Please help to gather data",
+			"    by hopping worlds :)",
 		};
 
 		for (String message : messages)
@@ -293,8 +286,6 @@ class WorldSwitcherPanel extends PluginPanel
 		{
 			WorldData worldData = worldDataList.get(i);
 			World world = worldResult.findWorld(worldData.getWorld_number());
-			if (world == null) { return; }
-
 			if (shouldWorldBeSkipped(world, worldData, config)) { continue; }
 
 			boolean isCurrentWorld = worldData.getWorld_number() == worldHopper.getCurrentWorld() && worldHopper.getLastWorld() != 0;
