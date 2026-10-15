@@ -38,6 +38,7 @@ import net.runelite.api.*;
 import net.runelite.api.events.DecorativeObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.gameval.ObjectID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.ui.overlay.OverlayManager;
 import java.time.Instant;
@@ -125,8 +126,8 @@ public class StreamOrderDetector
 
         DecorativeObject object = event.getDecorativeObject();
 
-        if (object.getId() == ObjectID.BLUE_TEARS || object.getId() == ObjectID.BLUE_TEARS_6665 ||
-                object.getId() == ObjectID.GREEN_TEARS || object.getId() == ObjectID.GREEN_TEARS_6666)
+        if (object.getId() == ObjectID.TOG_WEEPING_WALL_GOOD_R || object.getId() == ObjectID.TOG_WEEPING_WALL_GOOD_L ||
+                object.getId() == ObjectID.TOG_WEEPING_WALL_BAD_R || object.getId() == ObjectID.TOG_WEEPING_WALL_BAD_L)
         {
             Instant spawnInstant = Instant.now();
             long timeSinceLastSpawn = ChronoUnit.MILLIS.between(lastSpawnInstant, spawnInstant);
@@ -233,13 +234,13 @@ public class StreamOrderDetector
         {
             return "-";
         }
-        if (	tearStreamObject.getId() == ObjectID.BLUE_TEARS ||
-                tearStreamObject.getId() == ObjectID.BLUE_TEARS_6665)
+        if (	tearStreamObject.getId() == ObjectID.TOG_WEEPING_WALL_GOOD_R ||
+                tearStreamObject.getId() == ObjectID.TOG_WEEPING_WALL_GOOD_L)
         {
             return "b";
         }
-        if (	tearStreamObject.getId() == ObjectID.GREEN_TEARS ||
-                tearStreamObject.getId() == ObjectID.GREEN_TEARS_6666)
+        if (	tearStreamObject.getId() == ObjectID.TOG_WEEPING_WALL_BAD_R ||
+                tearStreamObject.getId() == ObjectID.TOG_WEEPING_WALL_BAD_L)
         {
             return "g";
         }

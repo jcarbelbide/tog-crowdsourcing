@@ -29,8 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.togcrowdsourcing;
 
 import net.runelite.api.DecorativeObject;
-import net.runelite.api.ObjectID;
-import net.runelite.api.SpriteID;
+import net.runelite.api.gameval.ObjectID;
+import net.runelite.api.gameval.SpriteID;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.components.ComponentOrientation;
@@ -117,13 +117,13 @@ class ToGCrowdsourcingOverlay extends OverlayPanel
 		{
 			return "-";
 		}
-		if (	tearStreamObject.getId() == ObjectID.BLUE_TEARS ||
-				tearStreamObject.getId() == ObjectID.BLUE_TEARS_6665)
+		if (	tearStreamObject.getId() == ObjectID.TOG_WEEPING_WALL_GOOD_R ||
+				tearStreamObject.getId() == ObjectID.TOG_WEEPING_WALL_GOOD_L)
 		{
 			return "Blue";
 		}
-		if (	tearStreamObject.getId() == ObjectID.GREEN_TEARS ||
-				tearStreamObject.getId() == ObjectID.GREEN_TEARS_6666)
+		if (	tearStreamObject.getId() == ObjectID.TOG_WEEPING_WALL_BAD_R ||
+				tearStreamObject.getId() == ObjectID.TOG_WEEPING_WALL_BAD_L)
 		{
 			return "Green";
 		}
@@ -147,7 +147,7 @@ class ToGCrowdsourcingOverlay extends OverlayPanel
 
 	private BufferedImage getCheckBoxImage()
 	{
-		int spriteID = streamOrderDetector.isDataValid() ? SpriteID.OPTIONS_ROUND_CHECK_BOX_CHECKED : SpriteID.OPTIONS_ROUND_CHECK_BOX_CROSSED;
+		int spriteID = streamOrderDetector.isDataValid() ? SpriteID.OptionsRadioButtons.CHECK_GREEN : SpriteID.OptionsRadioButtons.CROSS_RED;
 		return spriteManager.getSprite(spriteID, 0);
 	}
 }
