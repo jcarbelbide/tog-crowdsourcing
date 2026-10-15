@@ -31,7 +31,7 @@ package com.togcrowdsourcing;
 
 import lombok.Getter;
 import net.runelite.api.DecorativeObject;
-import net.runelite.api.ObjectID;
+import net.runelite.api.gameval.ObjectID;
 import net.runelite.client.util.ColorUtil;
 
 import java.awt.Color;
@@ -67,13 +67,13 @@ public class TearStream
         {
             return Color.RED;
         }
-        if (	object.getId() == ObjectID.BLUE_TEARS ||
-                object.getId() == ObjectID.BLUE_TEARS_6665)
+        if (	object.getId() == ObjectID.TOG_WEEPING_WALL_GOOD_R ||
+                object.getId() == ObjectID.TOG_WEEPING_WALL_GOOD_L)
         {
             return BLUE_TEARS_COLOR;
         }
-        if (	object.getId() == ObjectID.GREEN_TEARS ||
-                object.getId() == ObjectID.GREEN_TEARS_6666)
+        if (	object.getId() == ObjectID.TOG_WEEPING_WALL_BAD_R ||
+                object.getId() == ObjectID.TOG_WEEPING_WALL_BAD_L)
         {
             return GREEN_TEARS_COLOR;
         }

@@ -35,7 +35,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.*;
-import net.runelite.api.widgets.ComponentID;
+import net.runelite.api.gameval.InterfaceID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
@@ -262,7 +262,10 @@ public class WorldHopper
 		rsWorld.setAddress(world.getAddress());
 		rsWorld.setId(world.getId());
 		rsWorld.setPlayerCount(world.getPlayers());
-		rsWorld.setLocation(world.getLocation());
+		if (world.getRegion() != null)
+		{
+			rsWorld.setLocation(world.getRegion().getId());
+		}
 		rsWorld.setTypes(WorldUtil.toWorldTypes(world.getTypes()));
 
 		if (client.getGameState() == GameState.LOGIN_SCREEN)
@@ -302,7 +305,7 @@ public class WorldHopper
 			return;
 		}
 
-		if (client.getWidget(ComponentID.WORLD_SWITCHER_WORLD_LIST) == null)
+		if (client.getWidget(InterfaceID.Worldswitcher.BUTTONS) == null)
 		{
 			client.openWorldHopper();
 
